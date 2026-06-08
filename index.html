@@ -352,6 +352,13 @@ input::placeholder, textarea::placeholder { color:var(--ink4); }
   display:flex; align-items:center; gap:9px; transition:all .2s; white-space:nowrap;
 }
 .btn-export:hover { background:var(--green-mid); box-shadow:0 4px 16px rgba(26,107,42,.25); transform:translateY(-1px); }
+.btn-delete {
+  background:transparent; color:var(--red); border:1.5px solid var(--red);
+  padding:11px 20px; border-radius:var(--r); cursor:pointer;
+  font-family:var(--sans); font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  display:flex; align-items:center; gap:8px; transition:all .2s; white-space:nowrap;
+}
+.btn-delete:hover { background:var(--red); color:#fff; box-shadow:0 4px 16px rgba(200,16,46,.25); transform:translateY(-1px); }
 
 /* KPI STRIP */
 .kpi-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
@@ -735,9 +742,14 @@ input.ok-code  { border-color:var(--green) !important; box-shadow:0 0 0 3px rgba
         <h2>Análise das Respostas</h2>
         <div class="sub">Última actualização: <span id="last-upd">—</span></div>
       </div>
-      <button class="btn-export" onclick="reqExport()">
-        <i class="ph ph-download-simple" style="font-size:15px"></i> Exportar Excel
-      </button>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="btn-export" onclick="reqExport()">
+          <i class="ph ph-download-simple" style="font-size:15px"></i> Exportar Excel
+        </button>
+        <button class="btn-delete" onclick="reqDelete()">
+          <i class="ph ph-trash" style="font-size:15px"></i> Apagar Dados
+        </button>
+      </div>
     </div>
 
     <div class="kpi-strip">
@@ -783,12 +795,36 @@ input.ok-code  { border-color:var(--green) !important; box-shadow:0 0 0 3px rgba
   <div class="modal">
     <h3>Acesso Restrito</h3>
     <p>Introduza as suas credenciais para exportar os dados completos em Excel.</p>
-    <div class="mf"><label>Email</label><input type="text" id="auth-email" placeholder="email@misau.gov.mz"></div>
+    <div class="mf"><label>Email</label><input type="text" id="auth-email" placeholder="email@ins.gov.mz"></div>
     <div class="mf"><label>Código de Acesso</label><input type="text" id="auth-code" placeholder="Código"></div>
     <div class="merr" id="auth-err">Credenciais incorrectas. Tente novamente.</div>
     <div class="mbtns">
       <button class="btn btn-outline" style="flex:1" onclick="closeModal()">Cancelar</button>
       <button class="btn btn-green" style="flex:1" onclick="checkAuth()"><i class="ph ph-check-circle" style="font-size:14px"></i> Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal-bg" id="delete-modal">
+  <div class="modal">
+    <div style="width:52px;height:52px;border-radius:50%;background:var(--red-lite);border:2px solid var(--red);display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+      <i class="ph ph-warning" style="font-size:24px;color:var(--red)"></i>
+    </div>
+    <h3 style="color:var(--red)">Apagar Todos os Dados</h3>
+    <p>Esta acção é <strong>irreversível</strong>. Todos os registos serão apagados permanentemente. Confirme as suas credenciais para continuar.</p>
+    <div class="mf"><label>Email</label><input type="text" id="del-email" placeholder="email@ins.gov.mz"></div>
+    <div class="mf"><label>Código de Acesso</label><input type="text" id="del-code" placeholder="Código"></div>
+    <div class="merr" id="del-err">Credenciais incorrectas.</div>
+    <div style="background:var(--red-lite);border:1px solid rgba(200,16,46,.2);border-radius:var(--r);padding:10px 14px;margin:14px 0;font-size:12px;color:var(--red);font-weight:600;">
+      <i class="ph ph-warning-circle" style="font-size:13px"></i>
+      &nbsp;Serão apagados <span id="del-count">0</span> registos. Esta operação não pode ser desfeita.
+    </div>
+    <div class="mbtns">
+      <button class="btn btn-outline" style="flex:1" onclick="closeDeleteModal()">Cancelar</button>
+      <button class="btn" style="flex:1;background:var(--red);color:#fff;" onclick="confirmDelete()">
+        <i class="ph ph-trash" style="font-size:14px"></i> Apagar Tudo
+      </button>
     </div>
   </div>
 </div>
@@ -987,7 +1023,7 @@ function exportXlsx(){
   XLSX.writeFile(wb,'poupanca_egNC_'+new Date().toISOString().split('T')[0]+'.xlsx');
   toast('Excel exportado com sucesso!');
 }
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),3200);}
+function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.style.background=type==='error'?'var(--red)':'var(--ink)';t.classList.add('on');setTimeout(()=>t.classList.remove('on'),3400);}
 /* ── Código validation ── */
 function validateCodigo(el) {
   const val = el.value.trim();
@@ -1021,6 +1057,44 @@ function validateCodigo(el) {
     }
   }
   return ok;
+}
+
+/* ── Delete ── */
+function reqDelete(){
+  document.getElementById('del-count').textContent = responses.length;
+  document.getElementById('del-err').style.display='none';
+  document.getElementById('del-email').value='';
+  document.getElementById('del-code').value='';
+  document.getElementById('delete-modal').classList.add('open');
+}
+function closeDeleteModal(){
+  document.getElementById('delete-modal').classList.remove('open');
+}
+function confirmDelete(){
+  const email = document.getElementById('del-email').value.trim().toLowerCase();
+  const code  = document.getElementById('del-code').value.trim();
+  if(!AUTH.users.includes(email)){
+    const e=document.getElementById('del-err');e.textContent='Email não autorizado.';e.style.display='block';return;
+  }
+  if(code !== AUTH.code){
+    const e=document.getElementById('del-err');e.textContent='Código incorrecto.';e.style.display='block';return;
+  }
+  closeDeleteModal();
+  if(useFirebase && db){
+    db.collection('poupanca').get().then(snap=>{
+      const batch=db.batch();
+      snap.forEach(doc=>batch.delete(doc.ref));
+      return batch.commit();
+    }).then(()=>{
+      const n=responses.length;responses=[];render();updBadge();
+      toast('✓ '+n+' registos apagados do servidor');
+    }).catch(err=>toast('Erro: '+err.message));
+  } else {
+    const n=responses.length;responses=[];
+    try{localStorage.removeItem('p_r');}catch(_){}
+    render();updBadge();
+    toast('✓ '+n+' registos apagados');
+  }
 }
 
 loadLocal();
