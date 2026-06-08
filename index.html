@@ -804,7 +804,13 @@ const FIREBASE_CONFIG = {
   messagingSenderId:"633716514024",
   appId:"1:633716514024:web:f7fca782e31e6950753d5d"
 };
-const AUTH={email:"ferraomarty27@gmail.com",code:"Ferraomarty27"};
+const AUTH = {
+  users: [
+    "marcia.mutisse@ins.gov.mz",
+    "ferao.mandlate@ins.gov.mz"
+  ],
+  code: "Forcatarefa2025"
+};
 let responses=[],db=null,useFirebase=false;
 try{
   const app=firebase.initializeApp(FIREBASE_CONFIG);db=firebase.firestore(app);
@@ -957,7 +963,21 @@ function renderTbl(){
 }
 function reqExport(){document.getElementById('auth-modal').classList.add('open');document.getElementById('auth-err').style.display='none';}
 function closeModal(){document.getElementById('auth-modal').classList.remove('open');}
-function checkAuth(){if(document.getElementById('auth-email').value.trim()===AUTH.email&&document.getElementById('auth-code').value.trim()===AUTH.code){closeModal();exportXlsx();}else document.getElementById('auth-err').style.display='block';}
+function checkAuth(){
+  const email = document.getElementById('auth-email').value.trim().toLowerCase();
+  const code  = document.getElementById('auth-code').value.trim();
+  const ok    = AUTH.users.includes(email) && code === AUTH.code;
+  if(ok){ closeModal(); exportXlsx(); }
+  else {
+    const errEl = document.getElementById('auth-err');
+    if(!AUTH.users.includes(email)){
+      errEl.textContent = 'Email não autorizado para exportar dados.';
+    } else {
+      errEl.textContent = 'Código de acesso incorrecto.';
+    }
+    errEl.style.display = 'block';
+  }
+}
 function exportXlsx(){
   if(!responses.length){toast('Sem dados para exportar');return;}
   const rows=responses.map(r=>({'Ref':r.ref||'','Especialista':r.codigoEspecialista||'','Intervenção':r.nomeIntervencao||'','Proposta':r.proposta||'','Nível':NL[r.nivel]||r.nivel||'','Redução (%)':PL[r.reducaoCustos]||r.reducaoCustos||'','Factores':r.fatores||'','Confiança':CL[r.confianca]||r.confianca||'','Prazo':TL[r.prazo]||r.prazo||'','Data':r.submittedAt?new Date(r.submittedAt).toLocaleString('pt-MZ'):''}));
