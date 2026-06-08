@@ -240,16 +240,49 @@ input::placeholder, textarea::placeholder { color:var(--ink4); }
 .conf-row { display:flex; gap:10px; }
 .conf-c {
   flex:1; background:#fff; border:1.5px solid var(--line);
-  border-radius:var(--r-lg); padding:16px 8px; text-align:center;
-  cursor:pointer; transition:all .2s; box-shadow:0 1px 4px rgba(0,0,0,.04);
+  border-radius:var(--r-lg); padding:16px 10px 14px;
+  text-align:center; cursor:pointer; transition:all .25s;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  display:flex; flex-direction:column; align-items:center; gap:0;
 }
-.conf-c:hover { border-color:var(--green); transform:translateY(-1px); }
-.conf-c.sel-1,.conf-c.sel-2 { border-color:var(--red); background:var(--red-lite); }
+.conf-c:hover { border-color:var(--green); transform:translateY(-2px); box-shadow:var(--card-sh); }
+.conf-c.sel-1 { border-color:#c8102e; background:#fdf0f2; }
+.conf-c.sel-2 { border-color:#e05020; background:#fdf4f0; }
 .conf-c.sel-3 { border-color:var(--yellow); background:var(--yellow-lite); }
-.conf-c.sel-4,.conf-c.sel-5 { border-color:var(--green); background:var(--green-tint); }
+.conf-c.sel-4 { border-color:#2a8a40; background:#edf7f0; }
+.conf-c.sel-5 { border-color:var(--green); background:var(--green-tint); box-shadow:0 0 0 3px rgba(26,107,42,.1); }
 .conf-c input { display:none; }
-.conf-emoji { font-size:22px; display:block; }
-.conf-lbl { font-size:10px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--ink3); margin-top:7px; display:block; line-height:1.3; }
+.conf-bar-wrap {
+  width:28px; height:56px;
+  background:var(--bg3); border-radius:4px;
+  display:flex; align-items:flex-end; overflow:hidden;
+  margin-bottom:8px; position:relative;
+}
+.conf-bar {
+  width:100%; border-radius:4px;
+  background:var(--line); transition:background .25s, height .25s;
+}
+.conf-c.sel-1 .conf-bar { background:#c8102e; }
+.conf-c.sel-2 .conf-bar { background:#e05020; }
+.conf-c.sel-3 .conf-bar { background:var(--yellow); }
+.conf-c.sel-4 .conf-bar { background:#2a8a40; }
+.conf-c.sel-5 .conf-bar { background:var(--green); }
+.conf-c:hover .conf-bar { background:var(--ink3); }
+.conf-c.sel-1:hover .conf-bar { background:#c8102e; }
+.conf-c.sel-2:hover .conf-bar { background:#e05020; }
+.conf-c.sel-3:hover .conf-bar { background:var(--yellow); }
+.conf-c.sel-4:hover .conf-bar { background:#2a8a40; }
+.conf-c.sel-5:hover .conf-bar { background:var(--green); }
+.conf-pct {
+  font-size:13px; font-weight:800; letter-spacing:-.01em;
+  color:var(--ink2); display:block; line-height:1; margin-bottom:5px;
+}
+.conf-c.sel-1 .conf-pct { color:#c8102e; }
+.conf-c.sel-2 .conf-pct { color:#e05020; }
+.conf-c.sel-3 .conf-pct { color:#9a7400; }
+.conf-c.sel-4 .conf-pct { color:#2a8a40; }
+.conf-c.sel-5 .conf-pct { color:var(--green); }
+.conf-lbl { font-size:9px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink3); display:block; line-height:1.3; }
 
 .divider { height:1px; background:var(--green-lite); margin:30px 0; }
 
@@ -617,11 +650,36 @@ input.ok-code  { border-color:var(--green) !important; box-shadow:0 0 0 3px rgba
       <div class="field">
         <label class="field-lbl">Grau de confiança <span class="req">*</span></label>
         <div class="conf-row" id="cg-conf">
-          <label class="conf-c" onclick="selC(1,this)"><input type="radio" name="conf" value="muito-baixo"><span class="conf-emoji">😐</span><span class="conf-lbl">Muito Baixo</span></label>
-          <label class="conf-c" onclick="selC(2,this)"><input type="radio" name="conf" value="baixo"><span class="conf-emoji">🙂</span><span class="conf-lbl">Baixo</span></label>
-          <label class="conf-c" onclick="selC(3,this)"><input type="radio" name="conf" value="moderado"><span class="conf-emoji">😊</span><span class="conf-lbl">Moderado</span></label>
-          <label class="conf-c" onclick="selC(4,this)"><input type="radio" name="conf" value="alto"><span class="conf-emoji">😄</span><span class="conf-lbl">Alto</span></label>
-          <label class="conf-c" onclick="selC(5,this)"><input type="radio" name="conf" value="muito-alto"><span class="conf-emoji">🤩</span><span class="conf-lbl">Muito Alto</span></label>
+          <label class="conf-c" onclick="selC(1,this)">
+            <input type="radio" name="conf" value="muito-baixo">
+            <div class="conf-bar-wrap"><div class="conf-bar" style="height:20%"></div></div>
+            <span class="conf-pct">20%</span>
+            <span class="conf-lbl">Muito Baixo</span>
+          </label>
+          <label class="conf-c" onclick="selC(2,this)">
+            <input type="radio" name="conf" value="baixo">
+            <div class="conf-bar-wrap"><div class="conf-bar" style="height:40%"></div></div>
+            <span class="conf-pct">40%</span>
+            <span class="conf-lbl">Baixo</span>
+          </label>
+          <label class="conf-c" onclick="selC(3,this)">
+            <input type="radio" name="conf" value="moderado">
+            <div class="conf-bar-wrap"><div class="conf-bar" style="height:60%"></div></div>
+            <span class="conf-pct">60%</span>
+            <span class="conf-lbl">Moderado</span>
+          </label>
+          <label class="conf-c" onclick="selC(4,this)">
+            <input type="radio" name="conf" value="alto">
+            <div class="conf-bar-wrap"><div class="conf-bar" style="height:80%"></div></div>
+            <span class="conf-pct">80%</span>
+            <span class="conf-lbl">Alto</span>
+          </label>
+          <label class="conf-c" onclick="selC(5,this)">
+            <input type="radio" name="conf" value="muito-alto">
+            <div class="conf-bar-wrap"><div class="conf-bar" style="height:100%"></div></div>
+            <span class="conf-pct">100%</span>
+            <span class="conf-lbl">Muito Alto</span>
+          </label>
         </div>
       </div>
       <div class="divider"></div>
@@ -685,7 +743,7 @@ input.ok-code  { border-color:var(--green) !important; box-shadow:0 0 0 3px rgba
     <div class="kpi-strip">
       <div class="kpi k-g"><div class="kpi-lbl">Total Respostas</div><div class="kpi-val g" id="kv-total">0</div><div class="kpi-sub">especialistas consultados</div></div>
       <div class="kpi k-d"><div class="kpi-lbl">Redução Modal</div><div class="kpi-val" id="kv-modal" style="font-size:22px">—</div><div class="kpi-sub">intervalo mais seleccionado</div></div>
-      <div class="kpi k-y"><div class="kpi-lbl">Confiança Dominante</div><div class="kpi-val" id="kv-conf" style="font-size:28px">—</div><div class="kpi-sub" id="kv-conf-s"></div></div>
+      <div class="kpi k-y"><div class="kpi-lbl">Confiança Dominante</div><div class="kpi-val g" id="kv-conf" style="font-size:28px;letter-spacing:-.02em">—</div><div class="kpi-sub" id="kv-conf-s"></div></div>
       <div class="kpi k-r"><div class="kpi-lbl">Prazo Mais Citado</div><div class="kpi-val r" id="kv-tempo" style="font-size:17px">—</div><div class="kpi-sub">para início das poupanças</div></div>
     </div>
 
@@ -867,7 +925,7 @@ function render(){
   }).join('');
   const cc={};responses.forEach(r=>{if(r.confianca)cc[r.confianca]=(cc[r.confianca]||0)+1;});
   const cmx=Object.entries(cc).sort((a,b)=>b[1]-a[1])[0];
-  const em={'muito-baixo':'😐','baixo':'🙂','moderado':'😊','alto':'😄','muito-alto':'🤩'};
+  const em={'muito-baixo':'20%','baixo':'40%','moderado':'60%','alto':'80%','muito-alto':'100%'};
   document.getElementById('kv-conf').textContent=cmx?em[cmx[0]]:'—';
   document.getElementById('kv-conf-s').textContent=cmx?CL[cmx[0]]:'';
   const co=['muito-alto','alto','moderado','baixo','muito-baixo'];
