@@ -640,10 +640,15 @@ let db=null, firebaseOK=false;
 try{
   const app=initializeApp(firebaseConfig);
   db=getFirestore(app);
-  firebaseOK=!firebaseConfig.projectId.startsWith("SUBSTITUA");
-}catch(e){console.warn("Firebase não inicializado:",e);}
+  firebaseOK=true;
+  console.log("✅ Firebase inicializado — projecto:", firebaseConfig.projectId);
+}catch(e){
+  console.error("❌ Firebase FALHOU ao inicializar:", e);
+  firebaseOK=false;
+}
 window.__APP__={db,collection,addDoc,onSnapshot,serverTimestamp,query,orderBy,COLLECTION,ADMIN_EMAILS,ADMIN_PASSWORD,firebaseOK};
-window.dispatchEvent(new Event("firebase-ready"));
+// pequeno delay para garantir que o script principal já carregou
+setTimeout(()=>window.dispatchEvent(new Event("firebase-ready")),50);
 </script>
 
 <!-- LÓGICA -->
@@ -816,8 +821,8 @@ document.getElementById("surveyForm").addEventListener("submit", async (e)=>{
     document.getElementById("successBox").classList.add("show");
     window.scrollTo({top:0,behavior:"smooth"});
   }catch(err){
-    console.error(err);
-    toast("Erro ao guardar. Verifique a ligação / configuração Firebase.","err");
+    console.error("❌ Erro Firestore ao guardar:", err.code, err.message, err);
+    toast("Erro ao guardar: " + (err.message||err.code||"verifique a consola F12"), "err");
   }finally{
     btn.disabled=false; btn.innerHTML='<i class="ph-fill ph-paper-plane-right"></i> Submeter resposta';
   }
@@ -850,25 +855,51 @@ document.querySelectorAll(".tab").forEach(tab=>{
     const v=tab.dataset.view;
     document.getElementById("view-form").classList.toggle("active",v==="form");
     document.getElementById("view-dash").classList.toggle("active",v==="dash");
-    if(v==="dash") refreshDash();
+    if(v==="dash"){ if(APP && APP.firebaseOK) startAllListeners(); refreshDash(); }
     window.scrollTo({top:0});
   });
 });
 
-let activeUnsub = null;
+/* ─── Listener Firebase — carrega AMBAS as colecções ─── */
+let unsubMalaria = null, unsubTB = null;
+
 function startFirestoreListener(colecao){
-  if(activeUnsub){ activeUnsub(); activeUnsub=null; }
-  if(!APP || !APP.firebaseOK) return;
-  const q=APP.query(APP.collection(APP.db, colecao), APP.orderBy("timestamp","desc"));
-  activeUnsub=APP.onSnapshot(q,snap=>{
-    RESPOSTAS=snap.docs.map(d=>({id:d.id,...d.data()}));
-    refreshDash();
-  },err=>console.error("Firestore:",err));
+  /* chamado quando o utilizador muda de programa no formulário */
+  /* não faz nada aqui — os listeners globais já tratam tudo */
 }
+
+function startAllListeners(){
+  if(!APP || !APP.firebaseOK) return;
+
+  const COLS = ["inquerito_pm_malaria", "inquerito_tb"];
+  let snapshots = { inquerito_pm_malaria: [], inquerito_tb: [] };
+
+  COLS.forEach(col => {
+    const q = APP.query(APP.collection(APP.db, col), APP.orderBy("timestamp","desc"));
+    APP.onSnapshot(q, snap => {
+      snapshots[col] = snap.docs.map(d => ({id: d.id, _colecao: col, ...d.data()}));
+      /* juntar as duas colecções e ordenar por timestamp desc */
+      RESPOSTAS = [
+        ...snapshots["inquerito_pm_malaria"],
+        ...snapshots["inquerito_tb"]
+      ].sort((a,b) => {
+        const ta = a.timestamp?.toMillis ? a.timestamp.toMillis() : 0;
+        const tb = b.timestamp?.toMillis ? b.timestamp.toMillis() : 0;
+        return tb - ta;
+      });
+      refreshDash();
+      console.log("📊 Dados actualizados — total:", RESPOSTAS.length, "respostas");
+    }, err => console.error("Firestore erro em", col, ":", err));
+  });
+}
+
 window.addEventListener("firebase-ready",()=>{
-  APP=window.__APP__;
+  APP = window.__APP__;
   if(!APP.firebaseOK){
-    console.warn("Firebase em modo demonstração — configure firebaseConfig para guardar respostas.");
+    console.warn("⚠️ Firebase em modo demonstração — dados não são guardados.");
+  } else {
+    console.log("✅ Firebase pronto. A carregar dados...");
+    startAllListeners();
   }
 });
 
