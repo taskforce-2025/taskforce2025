@@ -20,7 +20,7 @@
   --ouro:#E9B800;  --ouro-d:#b78f00;  --ouro-l:#fbf2d2;
   --verm:#CE1126;  --verm-l:#fae6e8;
   --ink:#16150f;   --muted:#6c6a5f;   --line:#e8e4da;
-  --bg:#f4f3ee;    --card:#ffffff;    --soft:#faf9f4;
+  --bg:#f9f0ef;    --card:#ffffff;    --soft:#fdf6f5;
   --shadow:0 1px 2px rgba(20,18,10,.04), 0 10px 30px rgba(20,18,10,.07);
   --radius:16px;
 }
@@ -109,9 +109,45 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
 .opt:has(input:checked){border-color:var(--verde);background:var(--verde-l);color:var(--verde-d);font-weight:600}
 .opt .ot{flex:1;border:none;background:transparent;padding:0;font-size:13.5px;box-shadow:none!important}
 .opt .ot:focus{box-shadow:none!important;background:transparent}
-.dim-block{border:1px solid var(--line);border-radius:13px;padding:16px;background:var(--soft);margin-bottom:14px}
-.dim-block .dl{font-size:13.5px;font-weight:800;color:var(--verde-d);margin-bottom:3px}
-.dim-block .dd{font-size:12px;color:var(--muted);margin-bottom:12px}
+.dim-block{border:1px solid var(--line);border-radius:13px;padding:18px 20px;background:var(--soft);margin-bottom:14px}
+.dim-block .dl{font-size:13px;font-weight:800;color:var(--verde-d);margin-bottom:2px;display:flex;align-items:center;gap:7px}
+.dim-block .dl-icon{width:22px;height:22px;border-radius:7px;background:var(--verde);display:grid;place-items:center;flex:0 0 auto}
+.dim-block .dl-icon svg{width:13px;height:13px}
+.dim-block .dd{font-size:12.5px;color:var(--muted);margin-bottom:14px;line-height:1.5;padding-left:0}
+/* Cartoes nivel conhecimento — layout em linhas com gradiente de cor */
+.nivel-opts{display:flex;flex-direction:column;gap:8px}
+.nivel-opt{position:relative;cursor:pointer;user-select:none}
+.nivel-opt input{position:absolute;opacity:0;pointer-events:none}
+.nivel-card{border:2px solid transparent;border-radius:12px;padding:13px 16px;display:flex;align-items:center;gap:14px;transition:.18s;box-sizing:border-box;position:relative}
+.nivel-card:hover{filter:brightness(.97);transform:translateX(3px)}
+.nivel-opt input:checked ~ .nivel-card{border-color:rgba(0,0,0,.18);box-shadow:0 3px 10px rgba(0,0,0,.12);transform:translateX(4px)}
+/* Cores gradientes por nível — cinza → verde escuro */
+.nivel-opt:nth-child(1) .nivel-card{background:#f0f0f0}
+.nivel-opt:nth-child(2) .nivel-card{background:#d6ead9}
+.nivel-opt:nth-child(3) .nivel-card{background:#9fc9b2}
+.nivel-opt:nth-child(4) .nivel-card{background:#3aa86f}
+.nivel-opt:nth-child(5) .nivel-card{background:#00592A}
+/* Texto escuro nos níveis claros, branco nos escuros */
+.nivel-opt:nth-child(1) .nivel-card .nivel-title,
+.nivel-opt:nth-child(1) .nivel-card .nivel-desc,
+.nivel-opt:nth-child(2) .nivel-card .nivel-title,
+.nivel-opt:nth-child(2) .nivel-card .nivel-desc{color:#2a3a2e}
+.nivel-opt:nth-child(3) .nivel-card .nivel-title,
+.nivel-opt:nth-child(3) .nivel-card .nivel-desc{color:#1a2e20}
+.nivel-opt:nth-child(4) .nivel-card .nivel-title,
+.nivel-opt:nth-child(4) .nivel-card .nivel-desc,
+.nivel-opt:nth-child(5) .nivel-card .nivel-title,
+.nivel-opt:nth-child(5) .nivel-card .nivel-desc{color:#fff}
+.nivel-num{width:36px;height:36px;border-radius:50%;font-size:16px;font-weight:900;display:grid;place-items:center;flex:0 0 auto;background:rgba(0,0,0,.12);color:inherit}
+.nivel-opt:nth-child(1) .nivel-card .nivel-num{background:rgba(0,0,0,.1);color:#555}
+.nivel-opt:nth-child(4) .nivel-card .nivel-num,
+.nivel-opt:nth-child(5) .nivel-card .nivel-num{background:rgba(255,255,255,.25);color:#fff}
+.nivel-title{font-size:13px;font-weight:800;line-height:1.3}
+.nivel-desc{font-size:11.5px;line-height:1.45;opacity:.85}
+/* Indicador de selecção */
+.nivel-opt input:checked ~ .nivel-card::after{content:"✓";position:absolute;right:14px;width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.35);display:grid;place-items:center;font-size:13px;font-weight:900;color:#fff}
+.nivel-opt:nth-child(1) input:checked ~ .nivel-card::after,
+.nivel-opt:nth-child(2) input:checked ~ .nivel-card::after{background:rgba(0,0,0,.15);color:#2a3a2e}
 
 .actions{display:flex;gap:12px;align-items:center;justify-content:flex-end;margin-top:6px}
 .btn{font:inherit;font-weight:700;font-size:14.5px;border:none;border-radius:12px;padding:13px 24px;cursor:pointer;display:inline-flex;align-items:center;gap:9px;transition:.18s}
@@ -234,7 +270,7 @@ footer .f-note{font-size:12px;color:rgba(255,255,255,.62);max-width:300px;line-h
 @media(max-width:760px){.insight-list{grid-template-columns:1fr}}
 
 /* === Selecção de programa (step-0) === */
-.prog-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px}
+.prog-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:4px}
 .prog-card{position:relative;border:2px solid var(--line);border-radius:16px;padding:22px 18px 18px;cursor:pointer;transition:.18s;background:var(--soft);text-align:center;user-select:none}
 .prog-card:hover{border-color:#b0c4ba;background:#fff;transform:translateY(-2px);box-shadow:var(--shadow)}
 .prog-card input{position:absolute;opacity:0;pointer-events:none}
@@ -248,7 +284,7 @@ footer .f-note{font-size:12px;color:rgba(255,255,255,.62);max-width:300px;line-h
 .prog-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:4px 11px;border-radius:20px;margin-bottom:10px}
 .prog-badge.mal{background:var(--verde-l);color:var(--verde-d)}
 .prog-badge.tb{background:#edf2fb;color:#1a3a8f}
-@media(max-width:600px){.prog-grid{grid-template-columns:1fr}}
+@media(max-width:700px){.prog-grid{grid-template-columns:1fr 1fr}}@media(max-width:480px){.prog-grid{grid-template-columns:1fr}}
 
 </style>
 </head>
@@ -334,6 +370,13 @@ footer .f-note{font-size:12px;color:rgba(255,255,255,.62);max-width:300px;line-h
                 <div class="pc-sub">4 intervenções · Optimização e redução de custos</div>
                 <span class="pc-check"><i class="ph-fill ph-check"></i></span>
               </label>
+              <label class="prog-card">
+                <input type="radio" name="programa" value="hiv">
+                <div class="pc-ico" style="background:#fce8f0;padding:6px"><svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%"><!-- Vírus HIV: esfera central com spikes glicoproteicos --><!-- Envelope viral --><circle cx="32" cy="32" r="16" fill="#e8a0b4" fill-opacity=".35" stroke="#a02060" stroke-width="2.2"/><!-- Núcleo cónico (capsídeo) --><ellipse cx="32" cy="34" rx="7" ry="9" fill="#c04070" fill-opacity=".55" stroke="#801040" stroke-width="1.5"/><!-- ARN --><path d="M29 28 Q32 32 29 38" stroke="#801040" stroke-width="1.2" stroke-linecap="round" fill="none"/><path d="M35 28 Q32 32 35 38" stroke="#801040" stroke-width="1.2" stroke-linecap="round" fill="none"/><!-- Spikes gp120/gp41 (8 spikes ao redor) --><g stroke="#a02060" stroke-width="1.8" stroke-linecap="round"><!-- topo --><line x1="32" y1="16" x2="32" y2="11"/><circle cx="32" cy="10" r="2.2" fill="#e8a0b4" stroke="#a02060" stroke-width="1.5"/><!-- direita topo --><line x1="42" y1="20" x2="46" y2="16"/><circle cx="47" cy="15" r="2.2" fill="#e8a0b4" stroke="#a02060" stroke-width="1.5"/><!-- direita --><line x1="48" y1="32" x2="53" y2="32"/><circle cx="54.5" cy="32" r="2.2" fill="#e8a0b4" stroke="#a02060" stroke-width="1.5"/><!-- direita baixo --><line x1="42" y1="44" x2="46" y2="48"/><circle cx="47" cy="49" r="2.2" fill="#e8a0b4" stroke="#a02060" stroke-width="1.5"/><!-- baixo --><line x1="32" y1="48" x2="32" y2="53"/><circle cx="32" cy="54.5" r="2.2" fill="#e8a0b4" stroke="#a02060" stroke-width="1.5"/><!-- esquerda baixo --><line x1="22" y1="44" x2="18" y2="48"/><circle cx="17" cy="49" r="2.2" fill="#e8a0b4" stroke="#a02060" stroke-width="1.5"/><!-- esquerda --><line x1="16" y1="32" x2="11" y2="32"/><circle cx="9.5" cy="32" r="2.2" fill="#e8a0b4" stroke="#a02060" stroke-width="1.5"/><!-- esquerda topo --><line x1="22" y1="20" x2="18" y2="16"/><circle cx="17" cy="15" r="2.2" fill="#e8a0b4" stroke="#a02060" stroke-width="1.5"/></g></svg></div>
+                <div class="pc-nome">Programa de HIV</div>
+                <div class="pc-sub">5 intervenções · ATS, Consumíveis, Cuidados e Tratamento, Monitoria, Prevenção</div>
+                <span class="pc-check"><i class="ph-fill ph-check"></i></span>
+              </label>
             </div>
           </div>
         </div>
@@ -346,10 +389,17 @@ footer .f-note{font-size:12px;color:rgba(255,255,255,.62);max-width:300px;line-h
           </div>
           <div class="field intervencao-select">
             <div id="progBadge" style="margin-bottom:10px"></div>
-            <label class="q" for="intervencao">Intervenção / Proposta de optimização <span class="req">*</span></label>
+            <label class="q" for="intervencao">Intervenção <span class="req">*</span></label>
             <select id="intervencao" required>
               <option value="" disabled selected>— Seleccione a intervenção —</option>
             </select>
+            <!-- Segundo nível: sub-intervenção (apenas para programas com subIntervencoes) -->
+            <div id="subIntervField" style="display:none;margin-top:14px">
+              <label class="q" for="subIntervencao">Sub-intervenção / Proposta de optimização <span class="req">*</span></label>
+              <select id="subIntervencao">
+                <option value="" disabled selected>— Seleccione a sub-intervenção —</option>
+              </select>
+            </div>
             <div class="proposta-card" id="propostaCard">
               <span class="pc-tag"><i class="ph-fill ph-lightbulb"></i> Proposta de optimização</span>
               <h3 id="propostaTitulo"></h3>
@@ -376,28 +426,28 @@ footer .f-note{font-size:12px;color:rgba(255,255,255,.62);max-width:300px;line-h
 
           <div class="section">
             <div class="sec-head"><div class="sec-num">2</div>
-              <div class="sec-meta"><h2>Nível de conhecimento</h2><p>Conhecimento teórico e experiência prática no programa.</p></div><div class="sec-ill"><svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M32 26c-5-4-12-4-17-2.5v27C20 47 27 47 32 51c5-4 12-4 17-0.5v-27C44 22 37 22 32 26z" fill="#d6ebe0" stroke="#00843D" stroke-width="2.5" stroke-linejoin="round"/><path d="M32 26v25" stroke="#00843D" stroke-width="2.5"/><circle cx="32" cy="13" r="7" fill="#E9B800"/><path d="M29 19h6" stroke="#00592A" stroke-width="2.5" stroke-linecap="round"/><path d="M30 22h4" stroke="#00592A" stroke-width="2.5" stroke-linecap="round"/></svg></div></div>
+              <div class="sec-meta"><h2>Nível de conhecimento</h2><p>Experiência técnica e financeira na intervenção avaliada.</p></div><div class="sec-ill"><svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M32 26c-5-4-12-4-17-2.5v27C20 47 27 47 32 51c5-4 12-4 17-0.5v-27C44 22 37 22 32 26z" fill="#d6ebe0" stroke="#00843D" stroke-width="2.5" stroke-linejoin="round"/><path d="M32 26v25" stroke="#00843D" stroke-width="2.5"/><circle cx="32" cy="13" r="7" fill="#E9B800"/><path d="M29 19h6" stroke="#00592A" stroke-width="2.5" stroke-linecap="round"/><path d="M30 22h4" stroke="#00592A" stroke-width="2.5" stroke-linecap="round"/></svg></div></div>
             <div class="dim-block">
               <div class="dl">Dimensão Técnica</div>
-              <div class="dd">Protocolos, fluxos, eficácia das intervenções, epidemiologia.</div>
-              <div class="opts" data-group="conhecimentoTecnico">
-                <label class="opt"><input type="radio" name="conhecimentoTecnico" value="Baixo"><span class="mark"></span>Baixo — conhecimento geral / macro</label>
-                <label class="opt"><input type="radio" name="conhecimentoTecnico" value="Intermédio"><span class="mark"></span>Intermédio — operacional / rotina</label>
-                <label class="opt"><input type="radio" name="conhecimentoTecnico" value="Alto"><span class="mark"></span>Alto — especialista / tomador de decisão</label>
-                <label class="opt"><input type="radio" name="conhecimentoTecnico" value="__outro__"><span class="mark"></span>Outro</label>
-                <input type="text" class="outro-field" data-for="conhecimentoTecnico" placeholder="Especifique o seu nível…">
-              </div>
+              <div class="dd">Qual é o seu nível de experiência/conhecimento na intervenção que está a ser avaliada?</div>
+              <div class="nivel-opts" data-group="conhecimentoTecnico">
+<label class="nivel-opt"><input type="radio" name="conhecimentoTecnico" value="1 — Nenhuma experiência/conhecimento"><div class="nivel-card"><div class="nivel-num">1</div><div class="nivel-title">Sem Experiência</div><div class="nivel-desc">Não possuo conhecimento ou experiência sobre a intervenção avaliada.</div></div></label>
+<label class="nivel-opt"><input type="radio" name="conhecimentoTecnico" value="2 — Conhecimento geral"><div class="nivel-card"><div class="nivel-num">2</div><div class="nivel-title">Conhecimento geral</div><div class="nivel-desc">Conheço a intervenção, mas não estou directamente envolvido na sua implementação.</div></div></label>
+<label class="nivel-opt"><input type="radio" name="conhecimentoTecnico" value="3 — Experiência operacional"><div class="nivel-card"><div class="nivel-num">3</div><div class="nivel-title">Experiência Operacional</div><div class="nivel-desc">Tenho experiência prática na implementação ou gestão desta intervenção.</div></div></label>
+<label class="nivel-opt"><input type="radio" name="conhecimentoTecnico" value="4 — Experiência técnica avançada"><div class="nivel-card"><div class="nivel-num">4</div><div class="nivel-title">Experiência Técnica Avançada</div><div class="nivel-desc">Tenho responsabilidade técnica, supervisão ou monitoria desta intervenção.</div></div></label>
+<label class="nivel-opt"><input type="radio" name="conhecimentoTecnico" value="5 — Especialista"><div class="nivel-card"><div class="nivel-num">5</div><div class="nivel-title">Especialista</div><div class="nivel-desc">Participo na definição de normas, estratégias ou decisões relacionadas com esta intervenção.</div></div></label>
+</div>
             </div>
             <div class="dim-block" style="margin-bottom:0">
               <div class="dl">Dimensão Financeira</div>
-              <div class="dd">Custos operacionais, orçamentos, estimativas de poupança.</div>
-              <div class="opts" data-group="conhecimentoFinanceiro">
-                <label class="opt"><input type="radio" name="conhecimentoFinanceiro" value="Baixo"><span class="mark"></span>Baixo — conhecimento geral / macro</label>
-                <label class="opt"><input type="radio" name="conhecimentoFinanceiro" value="Intermédio"><span class="mark"></span>Intermédio — operacional / rotina</label>
-                <label class="opt"><input type="radio" name="conhecimentoFinanceiro" value="Alto"><span class="mark"></span>Alto — especialista / tomador de decisão</label>
-                <label class="opt"><input type="radio" name="conhecimentoFinanceiro" value="__outro__"><span class="mark"></span>Outro</label>
-                <input type="text" class="outro-field" data-for="conhecimentoFinanceiro" placeholder="Especifique o seu nível…">
-              </div>
+              <div class="dd">Qual é o seu nível de experiência para avaliar os aspectos financeiros desta intervenção?</div>
+              <div class="nivel-opts" data-group="conhecimentoFinanceiro">
+<label class="nivel-opt"><input type="radio" name="conhecimentoFinanceiro" value="1 — Nenhuma experiência/conhecimento"><div class="nivel-card"><div class="nivel-num">1</div><div class="nivel-title">Sem Experiência</div><div class="nivel-desc">Não possuo conhecimento suficiente sobre os aspectos financeiros desta intervenção.</div></div></label>
+<label class="nivel-opt"><input type="radio" name="conhecimentoFinanceiro" value="2 — Conhecimento geral"><div class="nivel-card"><div class="nivel-num">2</div><div class="nivel-title">Conhecimento geral</div><div class="nivel-desc">Conheço de forma geral os custos, recursos ou financiamento associados à intervenção.</div></div></label>
+<label class="nivel-opt"><input type="radio" name="conhecimentoFinanceiro" value="3 — Experiência operacional"><div class="nivel-card"><div class="nivel-num">3</div><div class="nivel-title">Experiência Operacional</div><div class="nivel-desc">Tenho experiência na gestão ou acompanhamento de recursos financeiros desta intervenção.</div></div></label>
+<label class="nivel-opt"><input type="radio" name="conhecimentoFinanceiro" value="4 — Experiência técnica avançada"><div class="nivel-card"><div class="nivel-num">4</div><div class="nivel-title">Experiência Técnica Avançada</div><div class="nivel-desc">Tenho experiência em planeamento, orçamentação ou avaliação financeira desta intervenção.</div></div></label>
+<label class="nivel-opt"><input type="radio" name="conhecimentoFinanceiro" value="5 — Especialista"><div class="nivel-card"><div class="nivel-num">5</div><div class="nivel-title">Especialista</div><div class="nivel-desc">Participo na tomada de decisão sobre financiamento, alocação de recursos ou avaliação económica.</div></div></label>
+</div>
             </div>
           </div>
 
@@ -488,9 +538,15 @@ footer .f-note{font-size:12px;color:rgba(255,255,255,.62);max-width:300px;line-h
     <div class="wrap">
       <div class="dash-head">
         <div><h2>Análises do inquérito</h2><p id="dashMeta">A carregar respostas…</p></div>
-        <div class="dash-filter">
+        <div class="dash-filter" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
           <i class="ph ph-funnel" style="color:var(--muted)"></i>
-          <select id="filtroIntervencao"><option value="">Todas as intervenções</option></select>
+          <select id="filtroPrograma" style="min-width:160px">
+            <option value="">Todos os programas</option>
+            <option value="Programa de Malária">Malária</option>
+            <option value="Programa de Tuberculose">Tuberculose</option>
+            <option value="Programa de HIV">HIV</option>
+          </select>
+          <select id="filtroIntervencao" style="min-width:220px"><option value="">Todas as intervenções</option></select>
         </div>
       </div>
 
@@ -688,6 +744,119 @@ const PROGRAMAS = {
       { id:"tb_cadeia", nome:"Aquisição e distribuição de reagentes, consumíveis e medicamentos para TB",
         desc:"As propostas incluem o reforço da CMAM como entidade líder da gestão integrada de medicamentos e consumíveis laboratoriais, com fortalecimento da capacidade de quantificação, armazenagem, distribuição e monitoria logística. Recomenda-se ainda a integração plena dos insumos laboratoriais nos sistemas nacionais, harmonização da codificação dos consumíveis e mitigação dos constrangimentos financeiros que comprometem a sustentabilidade do programa." }
     ]
+  },
+  hiv: {
+    label: "Programa de HIV",
+    badgeClass: "hiv",
+    badgeIcon: "ph-fill ph-virus",
+    colecao: "inquerito_hiv",
+    intervencoes: [
+      { id:"hiv_ats", nome:"Aconselhamento e Testagem",
+        desc:"Intervenções de Aconselhamento e Testagem em Saúde (ATS) no âmbito do Programa de HIV, incluindo modelos comunitários, unidades sanitárias, autoteste, criação de demanda e integração com outros serviços.",
+        subIntervencoes: [
+          { id:"hiv_ats_comunitario", nome:"ATS Comunitário",
+            desc:"Expandir o autoteste em unidades sanitárias e comunidade, como forma de aumentar a cobertura de testagem e identificação precoce de casos de HIV, reduzindo os custos associados ao modelo de testagem convencional." },
+          { id:"hiv_ats_us", nome:"ATS nas Unidades Sanitárias",
+            desc:"Integrar o Aconselhamento e Testagem em Saúde (ATS) em todas as portas de atendimento das unidades sanitárias, evitando deslocações adicionais dos utentes e racionalizando recursos humanos e materiais." },
+          { id:"hiv_autoteste", nome:"Autoteste",
+            desc:"Expandir o autoteste em unidades sanitárias e comunidade, permitindo que os utentes realizem o teste de forma autónoma, reduzindo a necessidade de pessoal técnico e aumentando a cobertura de testagem." },
+          { id:"hiv_criacao_demanda", nome:"Criação de demanda para ATS",
+            desc:"Reforçar estratégias comunitárias e eventos públicos para criação de demanda, combinando com simplificação dos instrumentos de recolha de informação para reduzir custos operacionais." },
+          { id:"hiv_integracao", nome:"Integração com outros serviços de saúde",
+            desc:"Expandir a integração do ATS com PrEP, Planeamento Familiar e Doenças Não Transmissíveis (DNT), racionalizando recursos, evitando duplicação e aumentando a eficiência dos serviços." }
+        ]
+      },
+      { id:"hiv_consumiveis", nome:"Consumíveis",
+        desc:"Intervenções relativas à cadeia de abastecimento de medicamentos e insumos do Programa de HIV, incluindo aquisição, armazenamento, distribuição, gestão laboratorial, monitoria, quantificação, formação, planeamento e processos logísticos.",
+        subIntervencoes: [
+          { id:"hiv_aquisicao", nome:"Aquisição de medicamentos e insumos",
+            desc:"Centralização da aquisição e promoção de compras conjuntas de medicamentos e insumos para o programa de HIV, visando ganhos de escala e redução de custos unitários." },
+          { id:"hiv_armazenamento", nome:"Armazenamento de medicamentos e insumos",
+            desc:"Expansão e adequação das condições de armazenamento na CMAM para medicamentos e insumos do HIV, garantindo qualidade e reduzindo perdas por condições inadequadas." },
+          { id:"hiv_distribuicao", nome:"Distribuição e transporte",
+            desc:"Integração total dos fluxos logísticos e aumento de entregas directas para produtos de alta rotatividade do programa de HIV, reduzindo custos de transporte e tempo de espera nas unidades." },
+          { id:"hiv_lab", nome:"Gestão de insumos laboratoriais",
+            desc:"Transferência da gestão completa de insumos laboratoriais do HIV para a CMAM e reforço de recursos humanos especializados, garantindo continuidade e eficiência na cadeia de abastecimento." },
+          { id:"hiv_monitoria", nome:"Monitoria e sistemas de informação",
+            desc:"Integração dos sistemas logísticos e harmonização de dados para tomada de decisão no programa de HIV, eliminando duplicações e melhorando a qualidade da informação disponível." },
+          { id:"hiv_quantificacao", nome:"Quantificação de medicamentos e insumos",
+            desc:"Reforçar a liderança da CMAM e institucionalizar revisões conjuntas regulares de quantificação para o programa de HIV, melhorando a previsibilidade e reduzindo rupturas de stock." },
+          { id:"hiv_formacao", nome:"Formação e coordenação logística",
+            desc:"Criação de equipas multidisciplinares e racionalização de pacotes de formação para a cadeia logística do HIV, reduzindo custos de formação e melhorando a coordenação entre parceiros." },
+          { id:"hiv_planeamento", nome:"Planeamento e distribuição integrada",
+            desc:"Integração da planificação, quantificação e distribuição entre programas de HIV, TB e Malária, promovendo sinergias e reduzindo custos operacionais duplicados." },
+          { id:"hiv_processos", nome:"Processos logísticos e instrumentos",
+            desc:"Simplificação e harmonização de instrumentos e processos logísticos integrados para o HIV, reduzindo a carga administrativa e melhorando a eficiência operacional." }
+        ]
+      },
+      { id:"hiv_cuidados", nome:"Cuidados e Tratamento do HIV",
+        desc:"Intervenções relativas à prestação de cuidados clínicos e tratamento do HIV, incluindo avaliação clínica, modelos diferenciados de serviços, monitoria viral, rastreio de co-infecções, apoio psicossocial, formação de profissionais, gestão de recursos humanos, pacote comunitário e instrumentos de registo.",
+        subIntervencoes: [
+          { id:"hiv_avaliacao_clinica", nome:"Avaliação clínica e cuidados integrados",
+            desc:"Integrar a consulta clínica, laboratório, farmácia e apoio psicossocial (APSS) numa abordagem única centrada no paciente, reduzindo duplicações e melhorando a qualidade dos cuidados prestados." },
+          { id:"hiv_modelos_diferenciados", nome:"Modelos Diferenciados de Serviços",
+            desc:"Simplificar e expandir a dispensa multimensal de ARV e outros modelos diferenciados de serviços, reduzindo deslocações dos pacientes e custos operacionais das unidades sanitárias." },
+          { id:"hiv_monitoria_viral", nome:"Monitoria de carga viral e da falência terapêutica",
+            desc:"Espaçar a monitoria de carga viral para pacientes estáveis (intervalo de 2 anos), racionalizando o uso de recursos laboratoriais sem comprometer a qualidade clínica." },
+          { id:"hiv_rastreio_io", nome:"Rastreio e tratamento de IO, TB e DNT",
+            desc:"Integrar os serviços de cuidados e tratamento do HIV com o rastreio e tratamento de infecções oportunistas (IO), tuberculose (TB) e doenças não transmissíveis (DNT), evitando consultas separadas e reduzindo custos." },
+          { id:"hiv_apoio_psicossocial", nome:"Apoio Psicossocial",
+            desc:"Integrar o apoio psicossocial (APSS) na consulta clínica e na comunidade, optimizando o uso dos recursos humanos disponíveis e melhorando a adesão ao tratamento." },
+          { id:"hiv_formacao_profissionais", nome:"Formação de profissionais",
+            desc:"Digitalizar e padronizar a formação dos profissionais de saúde; criar aplicativo que integra formação em várias doenças; reduzir a duração média para 3 dias, diminuindo custos e tempo de ausência do posto." },
+          { id:"hiv_gestao_rh", nome:"Gestão de recursos humanos",
+            desc:"Redistribuir os recursos humanos existentes e reforçar a gestão de RH no programa de HIV, optimizando a afectação de pessoal às necessidades reais das unidades sanitárias." },
+          { id:"hiv_pacote_comunitario", nome:"Pacote comunitário",
+            desc:"Integrar as actividades de saúde primária (APS) comunitária e focar os recursos nos grupos prioritários, reduzindo custos de mobilização e aumentando o impacto das intervenções comunitárias." },
+          { id:"hiv_instrumentos_registo", nome:"Instrumentos de registo",
+            desc:"Simplificar e fundir os instrumentos de registo clínico do HIV, reduzindo a carga administrativa dos profissionais de saúde e melhorando a qualidade dos dados recolhidos." }
+        ]
+      },
+      { id:"hiv_monitoria_sistemas", nome:"Monitoria, Sistemas e Qualidade Assistencial",
+        desc:"Intervenções relativas à monitoria, sistemas de informação e qualidade assistencial do Programa de HIV, incluindo ciclos PDSA, avaliação da qualidade de dados, supervisões integradas, sistemas electrónicos, formações, engajamento do utente, equipamento informático, recursos humanos especializados e instrumentos de registo.",
+        subIntervencoes: [
+          { id:"hiv_pdsa", nome:"Ciclos de Melhoria de Qualidade (PDSA)",
+            desc:"Implementação de ciclos PDSA com monitoria intensiva, permitindo identificar e corrigir problemas de qualidade assistencial de forma sistemática e com menor custo." },
+          { id:"hiv_aqd", nome:"Avaliação da Qualidade de Dados (AQD) e visitas de apoio técnico",
+            desc:"Implementar um pacote integrado de qualidade que combine avaliação de dados e supervisões formativas, reduzindo o número de visitas separadas e optimizando o uso de recursos humanos." },
+          { id:"hiv_supervisoes", nome:"Supervisões formativas integradas",
+            desc:"Realizar supervisões formativas integradas orientadas à melhoria de desempenho, combinando várias áreas programáticas numa só visita para reduzir custos e tempo de deslocação." },
+          { id:"hiv_sis", nome:"Sistemas electrónicos de informação (SIS)",
+            desc:"Integração e uso dos sistemas electrónicos oficiais (SESP, SIS-RME, Farmácia, Laboratório) com dados harmonizados, eliminando duplicações e melhorando a tomada de decisão baseada em evidências." },
+          { id:"hiv_formacoes_cap", nome:"Formações e capacitação",
+            desc:"Integração de formações em várias áreas, digitalização de conteúdos e conversão para Telessaúde, reduzindo custos de deslocação e tempo de ausência dos profissionais de saúde." },
+          { id:"hiv_engajamento", nome:"Engajamento do utente e mentoria",
+            desc:"Implementação de ferramentas de mentoria e promoção do engajamento do utente no seu próprio tratamento, melhorando a adesão e reduzindo custos associados a perdas de seguimento." },
+          { id:"hiv_equipamento", nome:"Equipamento informático e infraestrutura",
+            desc:"Reforço da infraestrutura tecnológica e aquisição de equipamentos e licenças necessários para suportar os sistemas de informação do programa de HIV." },
+          { id:"hiv_rh_especializados", nome:"Recursos humanos especializados",
+            desc:"Manutenção e reforço de pessoal técnico especializado em todos os níveis do sistema de saúde, garantindo a continuidade e qualidade das actividades de monitoria e sistemas." },
+          { id:"hiv_sistemas_registo", nome:"Sistemas de registo e instrumentos",
+            desc:"Padronização e simplificação dos instrumentos de registo e integração entre sistemas, reduzindo a duplicação de esforços e melhorando a qualidade e completude dos dados." }
+        ]
+      },
+      { id:"hiv_prevencao", nome:"Prevenção",
+        desc:"Intervenções de prevenção do HIV, incluindo prevenção combinada biomédica, expansão e simplificação da PrEP, actores comunitários, criação de demanda e literacia, integração de pacotes, sector privado e oferta comunitária por provedores leigos.",
+        subIntervencoes: [
+          { id:"hiv_prev_pacote_us", nome:"Implementar pacote de prevenção combinada biomédica nas US",
+            desc:"Integrar nas unidades sanitárias os serviços de ITS, PrEP, PPE, PTV, TARV e outros, num pacote único de prevenção combinada biomédica, reduzindo consultas separadas e custos operacionais." },
+          { id:"hiv_prev_oferta_comunidade", nome:"Oferta do pacote de Prevenção combinada biomédica na comunidade",
+            desc:"Expandir o pacote de prevenção combinada (ATS, PrEP, preservativo e lubrificantes) na comunidade através de agentes comunitários (provedores leigos), aumentando a cobertura e reduzindo custos de deslocação." },
+          { id:"hiv_prev_expansao_prep", nome:"Expansão da PrEP",
+            desc:"Expandir a PrEP oral e injectável; introduzir o autoteste HIV (ATHIV) como critério para início da PrEP, simplificando o acesso e aumentando a cobertura nas populações de maior risco." },
+          { id:"hiv_prev_simplificacao_prep", nome:"Simplificação PrEP",
+            desc:"Usar o autoteste HIV como critério de elegibilidade e monitorização da PrEP, simplificando o fluxo clínico e reduzindo a necessidade de consultas presenciais frequentes." },
+          { id:"hiv_prev_integracao_pacotes", nome:"Integração de pacotes",
+            desc:"Criar pacotes integrados e diferenciados por perfil de risco, combinando várias intervenções de prevenção numa abordagem única adaptada às necessidades específicas de cada grupo populacional." },
+          { id:"hiv_prev_actores_comunitarios", nome:"Actores comunitários",
+            desc:"Capacitar líderes comunitários, líderes religiosos, praticantes de medicina tradicional e outros actores em matéria de prevenção combinada do HIV, alargando o alcance das intervenções sem aumentar proporcionalmente os custos." },
+          { id:"hiv_prev_demanda_literacia", nome:"Criação de demanda e literacia",
+            desc:"Reforçar a literacia em saúde sexual e prevenção do HIV através de plataformas digitais e materiais adaptados aos diferentes grupos, reduzindo custos de comunicação tradicionais." },
+          { id:"hiv_prev_sector_privado", nome:"Sector privado",
+            desc:"Integrar farmácias e clínicas privadas nos serviços de prevenção do HIV com mecanismos de reporte, ampliando a rede de prestação sem custos adicionais para o sector público." }
+        ]
+      }
+    ]
   }
 };
 
@@ -720,15 +889,17 @@ document.querySelectorAll('input[name="programa"]').forEach(radio => {
     sel.value = "";
     document.getElementById("propostaCard").classList.remove("show");
     document.getElementById("questionsBlock").style.display = "none";
+    document.getElementById("subIntervField").style.display = "none";
+    document.getElementById("subIntervencao").innerHTML = '<option value="" disabled selected>— Seleccione a sub-intervenção —</option>';
 
     /* Mostrar secção de intervenção */
     document.getElementById("secIntervencao").style.display = "block";
     document.getElementById("secIntervencao").scrollIntoView({ behavior: "smooth", block: "nearest" });
 
     /* Actualizar colecção Firebase */
-    if(APP && APP.firebaseOK) {
-      // nova colecção conforme programa — o listener será reiniciado
-      startFirestoreListener(prog.colecao);
+    const appNow = APP || window.__APP__;
+    if(appNow && appNow.firebaseOK) {
+      startAllListeners();
     }
   });
 });
@@ -748,11 +919,47 @@ const filtro=document.getElementById("filtroIntervencao");
 // Dropdown populado dinamicamente quando o programa é escolhido
 
 const card=document.getElementById("propostaCard"); // ref mantida para compatibilidade
+const subField=document.getElementById("subIntervField");
+const subSel=document.getElementById("subIntervencao");
+
+/* Quando muda a intervenção principal */
 sel.addEventListener("change",()=>{
   const iv=INTERVENCOES.find(x=>x.id===sel.value);
+  card.classList.remove("show");
+  document.getElementById("questionsBlock").style.display="none";
+  subField.style.display="none";
+  subSel.innerHTML='<option value="" disabled selected>— Seleccione a sub-intervenção —</option>';
+  subSel.value="";
+
   if(iv){
-    document.getElementById("propostaTitulo").textContent=iv.nome;
-    document.getElementById("propostaDesc").textContent=iv.desc;
+    if(iv.subIntervencoes && iv.subIntervencoes.length){
+      /* Tem sub-intervenções — mostrar segundo dropdown */
+      iv.subIntervencoes.forEach(s=>{
+        subSel.add(new Option(s.nome, s.id));
+      });
+      subField.style.display="block";
+      /* Mostrar descrição da intervenção-mãe como contexto */
+      document.getElementById("propostaTitulo").textContent=iv.nome;
+      document.getElementById("propostaDesc").textContent=iv.desc;
+      card.classList.add("show");
+    } else {
+      /* Intervenção simples (Malária / TB) */
+      document.getElementById("propostaTitulo").textContent=iv.nome;
+      document.getElementById("propostaDesc").textContent=iv.desc;
+      card.classList.add("show");
+      document.getElementById("questionsBlock").style.display="block";
+    }
+  }
+});
+
+/* Quando muda a sub-intervenção */
+subSel.addEventListener("change",()=>{
+  const iv=INTERVENCOES.find(x=>x.id===sel.value);
+  if(!iv || !iv.subIntervencoes) return;
+  const sub=iv.subIntervencoes.find(s=>s.id===subSel.value);
+  if(sub){
+    document.getElementById("propostaTitulo").textContent=sub.nome;
+    document.getElementById("propostaDesc").textContent=sub.desc;
     card.classList.add("show");
     document.getElementById("questionsBlock").style.display="block";
   }
@@ -783,12 +990,21 @@ function checkVals(name){
 document.getElementById("surveyForm").addEventListener("submit", async (e)=>{
   e.preventDefault();
   const iv=INTERVENCOES.find(x=>x.id===sel.value);
+  /* Determinar a intervenção efectiva (sub-intervenção se existir) */
+  let ivEfectiva = iv;
+  if(iv && iv.subIntervencoes && iv.subIntervencoes.length){
+    const subId = subSel.value;
+    if(!subId) return toast("Seleccione a sub-intervenção.","err");
+    ivEfectiva = iv.subIntervencoes.find(s=>s.id===subId) || iv;
+  }
   const nome=document.getElementById("nome").value.trim();
   const estimativa=radioVal("estimativaReducao");
   const confianca=radioVal("grauConfianca");
   const tempo=radioVal("tempoPoupanca");
   if(!iv) return toast("Seleccione a intervenção.","err");
   if(!nome) return toast("Indique o nome do especialista.","err");
+  if(!radioVal("conhecimentoTecnico")) return toast("Indique o nível de conhecimento técnico.","err");
+  if(!radioVal("conhecimentoFinanceiro")) return toast("Indique o nível de conhecimento financeiro.","err");
   if(!estimativa) return toast("Indique a estimativa de redução de custos.","err");
   if(!confianca) return toast("Indique o grau de confiança.","err");
   if(!tempo) return toast("Indique o horizonte temporal.","err");
@@ -797,7 +1013,8 @@ document.getElementById("surveyForm").addEventListener("submit", async (e)=>{
   const data={
     programa: progInfo.label || "",
     programaId: programaActivo || "",
-    intervencao: iv.nome, intervencaoId: iv.id,
+    intervencao: ivEfectiva.nome, intervencaoId: ivEfectiva.id,
+    intervencaoMae: iv.subIntervencoes ? iv.nome : "",
     nomeEspecialista: nome,
     propostaNr: document.getElementById("propostaNr").value.trim(),
     conhecimentoTecnico: radioVal("conhecimentoTecnico"),
@@ -811,10 +1028,14 @@ document.getElementById("surveyForm").addEventListener("submit", async (e)=>{
   };
   const btn=document.getElementById("submitBtn");
   btn.disabled=true; btn.innerHTML='<i class="ph ph-circle-notch"></i> A guardar…';
+  /* Usar APP ou window.__APP__ como fallback */
+  const appRef = APP || window.__APP__;
+  const col=(PROGRAMAS[programaActivo]||{}).colecao||"inquerito_pm_malaria";
   try{
-    if(APP&&APP.firebaseOK){
-      const col=(PROGRAMAS[programaActivo]||{}).colecao||APP.COLLECTION;await APP.addDoc(APP.collection(APP.db,col),{...data,timestamp:APP.serverTimestamp()});
+    if(appRef && appRef.firebaseOK && appRef.db){
+      await appRef.addDoc(appRef.collection(appRef.db,col),{...data,timestamp:appRef.serverTimestamp()});
     }else{
+      console.warn("Firebase não disponível — modo demo. APP=",appRef);
       RESPOSTAS.unshift({...data,_demo:true}); refreshDash();
     }
     document.getElementById("surveyForm").style.display="none";
@@ -822,7 +1043,10 @@ document.getElementById("surveyForm").addEventListener("submit", async (e)=>{
     window.scrollTo({top:0,behavior:"smooth"});
   }catch(err){
     console.error("❌ Erro Firestore ao guardar:", err.code, err.message, err);
-    toast("Erro ao guardar: " + (err.message||err.code||"verifique a consola F12"), "err");
+    let msg = err.message || err.code || "erro desconhecido";
+    if(err.code === "permission-denied") msg = "Permissão negada — adicione a colecção '" + col + "' nas regras do Firestore e publique.";
+    if(!appRef || !appRef.firebaseOK) msg = "Firebase não inicializado. Verifique a configuração e o domínio autorizado.";
+    toast("Erro ao guardar: " + msg, "err");
   }finally{
     btn.disabled=false; btn.innerHTML='<i class="ph-fill ph-paper-plane-right"></i> Submeter resposta';
   }
@@ -833,6 +1057,8 @@ function resetForm(){
   document.getElementById("successBox").classList.remove("show");
   document.getElementById("propostaCard").classList.remove("show");
   document.getElementById("questionsBlock").style.display="none";
+  document.getElementById("subIntervField").style.display="none";
+  document.getElementById("subIntervencao").innerHTML='<option value="" disabled selected>— Seleccione a sub-intervenção —</option>';
   document.getElementById("secIntervencao").style.display="none";
   document.getElementById("progBadge").innerHTML="";
   programaActivo=null; INTERVENCOES=[];
@@ -855,7 +1081,7 @@ document.querySelectorAll(".tab").forEach(tab=>{
     const v=tab.dataset.view;
     document.getElementById("view-form").classList.toggle("active",v==="form");
     document.getElementById("view-dash").classList.toggle("active",v==="dash");
-    if(v==="dash"){ if(APP && APP.firebaseOK) startAllListeners(); refreshDash(); }
+    if(v==="dash"){ try{ if(APP && APP.firebaseOK) startAllListeners(); refreshDash(); }catch(e){console.error("tab dash:",e);} }
     window.scrollTo({top:0});
   });
 });
@@ -869,19 +1095,23 @@ function startFirestoreListener(colecao){
 }
 
 function startAllListeners(){
-  if(!APP || !APP.firebaseOK) return;
+  const APP_REF = APP || window.__APP__;
+  if(!APP_REF || !APP_REF.firebaseOK) return;
+  /* actualizar APP global se ainda não estava definido */
+  if(!APP && APP_REF) APP = APP_REF;
 
-  const COLS = ["inquerito_pm_malaria", "inquerito_tb"];
-  let snapshots = { inquerito_pm_malaria: [], inquerito_tb: [] };
+  const COLS = ["inquerito_pm_malaria", "inquerito_tb", "inquerito_hiv"];
+  let snapshots = { inquerito_pm_malaria: [], inquerito_tb: [], inquerito_hiv: [] };
 
   COLS.forEach(col => {
-    const q = APP.query(APP.collection(APP.db, col), APP.orderBy("timestamp","desc"));
-    APP.onSnapshot(q, snap => {
+    const q = APP_REF.query(APP_REF.collection(APP_REF.db, col), APP_REF.orderBy("timestamp","desc"));
+    APP_REF.onSnapshot(q, snap => {
       snapshots[col] = snap.docs.map(d => ({id: d.id, _colecao: col, ...d.data()}));
       /* juntar as duas colecções e ordenar por timestamp desc */
       RESPOSTAS = [
         ...snapshots["inquerito_pm_malaria"],
-        ...snapshots["inquerito_tb"]
+        ...snapshots["inquerito_tb"],
+        ...snapshots["inquerito_hiv"]
       ].sort((a,b) => {
         const ta = a.timestamp?.toMillis ? a.timestamp.toMillis() : 0;
         const tb = b.timestamp?.toMillis ? b.timestamp.toMillis() : 0;
@@ -903,13 +1133,57 @@ window.addEventListener("firebase-ready",()=>{
   }
 });
 
-function filtradas(){
-  const f=filtro.value;
-  let d=RESPOSTAS;
-  if(f) d=d.filter(r=>r.intervencao===f);
-  return d;
+/* ── Índice de todas as intervenções/sub-intervenções de todos os programas ── */
+function getAllIntervencoes(){
+  const all = [];
+  Object.values(PROGRAMAS).forEach(prog => {
+    prog.intervencoes.forEach(iv => {
+      if(iv.subIntervencoes){
+        iv.subIntervencoes.forEach(sub => all.push({ nome: sub.nome, programa: prog.label }));
+      } else {
+        all.push({ nome: iv.nome, programa: prog.label });
+      }
+    });
+  });
+  return all;
 }
-filtro.addEventListener("change",refreshDash);
+
+/* Popula o dropdown de intervenções conforme o programa seleccionado */
+function populateFiltroIntervencao(programaLabel){
+  if(!filtro) return;
+  filtro.innerHTML = '<option value="">Todas as intervenções</option>';
+  try{
+    const all = getAllIntervencoes();
+    const lista = programaLabel ? all.filter(x => x.programa === programaLabel) : all;
+    lista.forEach(iv => filtro.add(new Option(iv.nome, iv.nome)));
+  }catch(e){ console.error("populateFiltroIntervencao:",e); }
+}
+
+const filtroProg = document.getElementById("filtroPrograma");
+if(filtroProg){
+  filtroProg.addEventListener("change", () => {
+    try{
+      populateFiltroIntervencao(filtroProg.value);
+      filtro.value = "";
+      refreshDash();
+    }catch(e){console.error("filtroPrograma change:",e);}
+  });
+}
+
+function filtradas(){
+  try{
+    const fp = filtroProg ? filtroProg.value : "";
+    const fi = filtro ? filtro.value : "";
+    let d = RESPOSTAS;
+    if(fp) d = d.filter(r => r.programa === fp);
+    if(fi) d = d.filter(r => r.intervencao === fi);
+    return d;
+  }catch(e){console.error("filtradas:",e);return RESPOSTAS;}
+}
+if(filtro) filtro.addEventListener("change", refreshDash);
+
+/* Inicializar filtro de intervenções após DOM estar pronto */
+try{ populateFiltroIntervencao(""); }catch(e){ console.error("populateFiltro init:",e); }
 
 if(window.ChartDataLabels) Chart.register(ChartDataLabels);
 Chart.defaults.font.family="Inter, system-ui, sans-serif";
@@ -948,7 +1222,7 @@ function refreshDash(){
   // Cruzamentos
   renderHeat(data);
   drawBarPct("chCruzConf",ORDEM_CONF,ORDEM_CONF.map(l=>{const a=avgEst(data.filter(r=>r.grauConfianca===l));return a==null?0:+a.toFixed(1);}),["#cfe8d8","#84c4a1","#3aa86f","#0d8f4e","#00592A"]);
-  drawBarPct("chCruzConh",["Baixo","Intermédio","Alto"],["Baixo","Intermédio","Alto"].map(l=>{const a=avgEst(data.filter(r=>r.conhecimentoTecnico===l));return a==null?0:+a.toFixed(1);}),["#cfe8d8","#3aa86f","#00592A"]);
+  drawBarPct("chCruzConh",["1","2","3","4","5"],["1 — Nenhuma experiência/conhecimento","2 — Conhecimento geral","3 — Experiência operacional","4 — Experiência técnica avançada","5 — Especialista"].map(l=>{const a=avgEst(data.filter(r=>r.conhecimentoTecnico===l));return a==null?0:+a.toFixed(1);}),[]);
   drawCruzTempo(data);
 
   renderTable(data);
@@ -961,7 +1235,8 @@ function buildInsights(data){
   const out=[];
   const ovr=avgEst(data);
   if(ovr!=null) out.push(item("ph-trend-down",`Redução de custos média estimada: <span class="hl">${ovr.toFixed(1)}%</span>, em <b>${N}</b> resposta${N!==1?"s":""}.`));
-  const perIv=INTERVENCOES.map(iv=>({nome:iv.nome,a:avgEst(data.filter(r=>r.intervencao===iv.nome))})).filter(x=>x.a!=null);
+  const nomesIv=[...new Set(data.map(r=>r.intervencao).filter(Boolean))];
+  const perIv=nomesIv.map(nome=>({nome,a:avgEst(data.filter(r=>r.intervencao===nome))})).filter(x=>x.a!=null);
   if(perIv.length>=2){
     perIv.sort((a,b)=>b.a-a.a);
     const t=perIv[0], l=perIv[perIv.length-1];
@@ -985,7 +1260,8 @@ function buildInsights(data){
 
 /* ---------- Heatmap: intervenção × faixa ---------- */
 function renderHeat(data){
-  const ivs=INTERVENCOES.filter(iv=>data.some(r=>r.intervencao===iv.nome));
+  const nomesDados=[...new Set(data.map(r=>r.intervencao).filter(Boolean))];
+  const ivs=nomesDados.map(n=>({nome:n}));
   const bands=ORDEM_REDUCAO;
   if(!ivs.length){el("heatTable").innerHTML="<tbody><tr><td style='color:var(--muted);padding:18px'>Sem dados.</td></tr></tbody>";return;}
   let maxc=0;
@@ -1049,9 +1325,11 @@ function drawDonut(id,labels,vals){
 }
 function drawMediaPorIntervencao(data){
   const labels=[],vals=[];
-  INTERVENCOES.forEach(iv=>{
-    const a=avgEst(data.filter(r=>r.intervencao===iv.nome));
-    if(a!=null){labels.push(shortIv(iv.nome));vals.push(+a.toFixed(1));}
+  /* Usar as intervenções que aparecem efectivamente nos dados filtrados */
+  const nomesPresentes=[...new Set(data.map(r=>r.intervencao).filter(Boolean))];
+  nomesPresentes.forEach(nome=>{
+    const a=avgEst(data.filter(r=>r.intervencao===nome));
+    if(a!=null){labels.push(shortIv(nome));vals.push(+a.toFixed(1));}
   });
   destroy("chPorIntervencao");
   charts["chPorIntervencao"]=new Chart(el("chPorIntervencao"),{type:"bar",
@@ -1060,7 +1338,7 @@ function drawMediaPorIntervencao(data){
       scales:{x:{beginAtZero:true,grid:{color:"#eeebe2"},ticks:{callback:v=>v+"%"}},y:{grid:{display:false},ticks:{font:{size:11}}}}}});
 }
 function drawConhecimento(data){
-  const niveis=["Baixo","Intermédio","Alto"];
+  const niveis=["1 — Nenhuma experiência/conhecimento","2 — Conhecimento geral","3 — Experiência operacional","4 — Experiência técnica avançada","5 — Especialista"];
   const tec=niveis.map(n=>data.filter(r=>r.conhecimentoTecnico===n).length);
   const fin=niveis.map(n=>data.filter(r=>r.conhecimentoFinanceiro===n).length);
   destroy("chConhecimento");
@@ -1074,7 +1352,8 @@ function drawConhecimento(data){
       scales:{y:{beginAtZero:true,ticks:{precision:0},grid:{color:"#eeebe2"}},x:{grid:{display:false}}}}});
 }
 function drawCruzTempo(data){
-  const ivs=INTERVENCOES.filter(iv=>data.some(r=>r.intervencao===iv.nome));
+  const nomesDados2=[...new Set(data.map(r=>r.intervencao).filter(Boolean))];
+  const ivs=nomesDados2.map(n=>({nome:n}));
   const labels=ivs.map(iv=>shortIv(iv.nome));
   const cores=[VERDE,OURO,VERM];
   const ds=ORDEM_TEMPO.map((t,i)=>({
@@ -1110,7 +1389,7 @@ el("adminBtn").addEventListener("click",()=>{
 ["adminEmail","adminCode"].forEach(id=>el(id).addEventListener("keydown",e=>{if(e.key==="Enter")el("adminBtn").click();}));
 
 const COLS=[
-  ["Data","dataISO"],["Programa","programa"],["Intervenção","intervencao"],["Especialista","nomeEspecialista"],
+  ["Data","dataISO"],["Programa","programa"],["Área","intervencaoMae"],["Intervenção","intervencao"],["Especialista","nomeEspecialista"],
   ["Prop. nº","propostaNr"],["Conh. Técnico","conhecimentoTecnico"],["Conh. Financeiro","conhecimentoFinanceiro"],
   ["Estimativa","estimativaReducao"],["Factores","fatores"],["Confiança","grauConfianca"],
   ["Horizonte","tempoPoupanca"],["Info adicional","infoAdicional"]
@@ -1136,7 +1415,7 @@ el("exportBtn").addEventListener("click",()=>{
   ws["!cols"]=COLS.map(c=>({wch:Math.max(c[0].length+2,16)}));
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,"Respostas");
-  XLSX.writeFile(wb,`Inquerito_PM_Malaria_${new Date().toISOString().slice(0,10)}.xlsx`);
+  XLSX.writeFile(wb,`Inquerito_TaskForce_${new Date().toISOString().slice(0,10)}.xlsx`);
   toast("Excel exportado.","ok");
 });
 </script>
