@@ -1437,303 +1437,184 @@ el("exportBtn").addEventListener("click",()=>{
   toast("Excel exportado.","ok");
 });
 
-/* ── Exportar Excel com gráficos editáveis (OOXML nativo via JSZip) ── */
+/* ── Exportar Excel com gráficos editáveis (OOXML via JSZip) ── */
 el("exportChartsBtn").addEventListener("click", async ()=>{
   if(!adminOK) return toast("Desbloqueie a área autorizada para exportar.","err");
   const data = filtradas();
   if(!data.length) return toast("Não há dados para exportar.","err");
+  if(typeof JSZip === "undefined") return toast("Biblioteca JSZip não carregada. Verifique a ligação à internet.","err");
 
   const dataStr = new Date().toISOString().slice(0,10);
-  const filtroLabel = (el("filtroPrograma")?.value||"").replace("Programa de ","") || "Todos os programas";
-  toast("A gerar Excel com gráficos editáveis…","ok");
+  toast("A gerar Excel…","ok");
 
   try{
-    /* ── helpers de dados ── */
-    /* Valores reais do formulário */
+    /* ── Constantes reais do formulário ── */
     const ORDEM_RED  = ["0–5%","5–10%","10–20%","20–30%","30–40%","40–50%",">50%"];
     const ORDEM_CONF = ["Muito baixo","Baixo","Moderado","Alto","Muito alto"];
     const ORDEM_TEMP = ["Menos de 6 meses","6 a 12 meses","Mais de 12 meses"];
     const NIVEIS_CON = ["1 — Nenhuma experiência/conhecimento","2 — Conhecimento geral",
       "3 — Experiência operacional","4 — Experiência técnica avançada","5 — Especialista"];
-    const FATORES_LIST = ["Redução de duplicação de tarefas","Melhoria logística",
+    const FATORES_L  = ["Redução de duplicação de tarefas","Melhoria logística",
       "Digitalização / processos electrónicos","Melhor utilização de recursos humanos"];
-    const midPts = {"0–5%":2.5,"5–10%":7.5,"10–20%":15,"20–30%":25,"30–40%":35,"40–50%":45,">50%":55};
-    function avg(arr){ const v=arr.map(r=>midPts[r.estimativaReducao]).filter(x=>x!=null); return v.length?v.reduce((a,b)=>a+b,0)/v.length:null; }
-    const ivNomes = [...new Set(data.map(r=>r.intervencao).filter(Boolean))];
+    const MP = {"0–5%":2.5,"5–10%":7.5,"10–20%":15,"20–30%":25,"30–40%":35,"40–50%":45,">50%":55};
+    function avg(arr){ const v=arr.map(r=>MP[r.estimativaReducao]).filter(x=>x!=null); return v.length?+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):0; }
+    const ivs = [...new Set(data.map(r=>r.intervencao).filter(Boolean))];
 
-    /* ── Conjuntos de dados para cada gráfico ── */
-    const DS = {
-      reducao: {
-        labels: ORDEM_RED,
-        values: ORDEM_RED.map(f=>data.filter(r=>r.estimativaReducao===f).length)
-      },
-      mediaPorIv: (()=>{
-        const pares = ivNomes.map(iv=>{ const a=avg(data.filter(r=>r.intervencao===iv)); return {iv, a:a!=null?+a.toFixed(1):0}; });
-        pares.sort((a,b)=>a.a-b.a); /* crescente */
-        return { labels: pares.map(x=>x.iv), values: pares.map(x=>x.a) };
-      })(),
-      confianca: {
-        labels: ORDEM_CONF,
-        values: ORDEM_CONF.map(c=>data.filter(r=>r.grauConfianca===c).length)
-      },
-      horizonte: {
-        labels: ORDEM_TEMP,
-        values: ORDEM_TEMP.map(t=>data.filter(r=>r.tempoPoupanca===t).length)
-      },
-      fatores: (()=>{
-        const pares = FATORES_LIST.map(f=>({f, n:data.filter(r=>Array.isArray(r.fatores)&&r.fatores.includes(f)).length}));
-        pares.sort((a,b)=>a.n-b.n); /* crescente */
-        return { labels: pares.map(x=>x.f), values: pares.map(x=>x.n) };
-      })(),
-      conhecTec: {
-        labels: NIVEIS_CON.map((_,i)=>`Nível ${i+1}`),
-        labelsFull: NIVEIS_CON,
-        values: NIVEIS_CON.map(n=>data.filter(r=>r.conhecimentoTecnico===n).length),
-        values2: NIVEIS_CON.map(n=>data.filter(r=>r.conhecimentoFinanceiro===n).length)
-      },
-      cruzConf: {
-        labels: ORDEM_CONF,
-        values: ORDEM_CONF.map(c=>{ const a=avg(data.filter(r=>r.grauConfianca===c)); return a!=null?+a.toFixed(1):0; })
-      },
-      cruzConh: {
-        labels: NIVEIS_CON.map((_,i)=>`Nível ${i+1}`),
-        values: NIVEIS_CON.map(n=>{ const a=avg(data.filter(r=>r.conhecimentoTecnico===n)); return a!=null?+a.toFixed(1):0; })
-      },
-      /* Horizonte × Intervenção — múltiplas séries (uma por horizonte) */
-      cruzTempo: {
-        ivLabels: ivNomes,
-        series: ORDEM_TEMP.map(t=>({
-          name: t,
-          values: ivNomes.map(iv=>{
-            const tot = data.filter(r=>r.intervencao===iv).length;
-            const c   = data.filter(r=>r.intervencao===iv && r.tempoPoupanca===t).length;
-            return tot ? +((c/tot)*100).toFixed(1) : 0;
-          })
-        }))
-      },
-      /* Heatmap — Intervenção × Faixa de redução */
-      heatmap: {
-        ivLabels: ivNomes,
-        bands: ORDEM_RED,
-        matrix: ivNomes.map(iv=>
-          ORDEM_RED.map(f=> data.filter(r=>r.intervencao===iv && r.estimativaReducao===f).length)
-        )
-      }
-    };
+    /* ── Helpers XML ── */
+    const esc = s=>String(s??0).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    const col = n=>{ let s=""; while(n>0){const r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26);} return s; };
 
-    /* ════════════════════════════════════════════════
-       OOXML builders
-    ════════════════════════════════════════════════ */
-    /* Escapar XML */
-    const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-
-    /* Converter número de coluna para letra Excel (1→A, 27→AA) */
-    function colLetter(n){
-      let s="";
-      while(n>0){ const r=(n-1)%26; s=String.fromCharCode(65+r)+s; n=Math.floor((n-1)/26); }
-      return s;
+    /* célula string ou número */
+    function cell(r,c,v,isStr=false,bold=false){
+      const ref=`${col(c)}${r}`;
+      const s = bold ? 1 : 0;
+      if(isStr) return `<c r="${ref}" t="inlineStr" s="${s}"><is><t>${esc(v)}</t></is></c>`;
+      return `<c r="${ref}" s="${s}"><v>${esc(v)}</v></c>`;
     }
 
-    /* Gerar XML de uma célula */
-    function cellXml(row,col,value,type="n",style=0){
-      const ref=`${colLetter(col)}${row}`;
-      if(type==="s") return `<c r="${ref}" t="inlineStr" s="${style}"><is><t>${esc(value)}</t></is></c>`;
-      return `<c r="${ref}" s="${style}"><v>${esc(value)}</v></c>`;
-    }
-
-    /* Gerar XML de uma folha com dados de labels+values (e values2 opcional) */
-    function sheetXml(labels, values, serName, values2=null, ser2Name=null){
+    /* Gerar XML de folha simples: col A = labels (str), col B = values, col C = values2 */
+    function makeSheet(labels, values, hdrA, hdrB, values2=null, hdrC=null){
       const rows=[];
-      // linha de cabeçalho
-      rows.push(`<row r="1">${cellXml(1,1,"Categoria","s",1)}${cellXml(1,2,serName,"s",1)}${values2?cellXml(1,3,ser2Name||"Série 2","s",1):""}</row>`);
-      labels.forEach((lbl,i)=>{
+      rows.push(`<row r="1">${cell(1,1,hdrA,true,true)}${cell(1,2,hdrB,true,true)}${values2?cell(1,3,hdrC||"Série 2",true,true):""}</row>`);
+      labels.forEach((l,i)=>{
         const r=i+2;
-        rows.push(`<row r="${r}">${cellXml(r,1,lbl,"s",0)}${cellXml(r,2,values[i])}${values2?cellXml(r,3,values2[i]):""}</row>`);
+        rows.push(`<row r="${r}">${cell(r,1,l,true)}${cell(r,2,values[i])}${values2?cell(r,3,values2[i]):""}</row>`);
       });
-      const lastRow=labels.length+1;
-      const lastCol=values2?3:2;
-      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
- xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-<sheetData>${rows.join("")}</sheetData>
-<tableParts/>
-</worksheet>`;
+      return wsWrap(rows.join(""));
     }
 
-    /* Gerar XML de folha com múltiplas séries (horizonte × intervenção) */
-    function sheetXmlMulti(rowLabels, colLabels, matrix){
-      /* rowLabels = intervenções, colLabels = horizontes, matrix[i][j] = valor */
-      const rows = [];
-      /* linha de cabeçalho */
-      const hdrCells = cellXml(1,1,"Intervenção","s",1) + colLabels.map((c,j)=>cellXml(1,j+2,c,"s",1)).join("");
+    /* Gerar XML de folha multi-coluna: col A = rowLabels, cols B..N = series */
+    function makeSheetMulti(rowLabels, colLabels, matrix){
+      const rows=[];
+      const hdrCells = cell(1,1,"Intervenção",true,true) + colLabels.map((c,j)=>cell(1,j+2,c,true,true)).join("");
       rows.push(`<row r="1">${hdrCells}</row>`);
       rowLabels.forEach((lbl,i)=>{
-        const r = i+2;
-        const cells = cellXml(r,1,lbl,"s",0) + matrix[i].map((v,j)=>cellXml(r,j+2,v)).join("");
+        const r=i+2;
+        const cells=cell(r,1,lbl,true)+matrix[i].map((v,j)=>cell(r,j+2,v)).join("");
         rows.push(`<row r="${r}">${cells}</row>`);
       });
-      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
- xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-<sheetData>${rows.join("")}</sheetData></worksheet>`;
+      return wsWrap(rows.join(""));
     }
 
-    /* Gerar XML de gráfico com múltiplas séries (barras empilhadas) */
-    function chartXmlMulti(rowLabels, series, title, sheetName){
-      const N = rowLabels.length;
-      const sn = esc(sheetName);
-      const lblRef = `<c:strRef><c:f>'${sn}'!$A$2:$A$${N+1}</c:f><c:strCache><c:ptCount val="${N}"/>${rowLabels.map((l,i)=>`<c:pt idx="${i}"><c:v>${esc(l)}</c:v></c:pt>`).join("")}</c:strCache></c:strRef>`;
-      const serXml = series.map((s,si)=>{
-        const col = colLetter(si+2);
-        return `<c:ser>
-  <c:idx val="${si}"/><c:order val="${si}"/>
-  <c:tx><c:strRef><c:f>'${sn}'!$${col}$1</c:f><c:strCache><c:ptCount val="1"/><c:pt idx="0"><c:v>${esc(s.name)}</c:v></c:pt></c:strCache></c:strRef></c:tx>
-  <c:cat>${lblRef}</c:cat>
-  <c:val><c:numRef><c:f>'${sn}'!$${col}$2:$${col}$${N+1}</c:f><c:numCache><c:formatCode>General</c:formatCode><c:ptCount val="${N}"/>${s.values.map((v,i)=>`<c:pt idx="${i}"><c:v>${v}</c:v></c:pt>`).join("")}</c:numCache></c:numRef></c:val>
+    function wsWrap(sheetData){
+      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<sheetData>${sheetData}</sheetData></worksheet>`;
+    }
+
+    /* ── Gráfico OOXML simples (1 ou 2 séries) ── */
+    function makeChart(type, labels, values, title, serName, sn, values2=null, ser2Name=null){
+      const N=labels.length;
+      const sne=esc(sn);
+      const lRef=`<c:strRef><c:f>'${sne}'!$A$2:$A$${N+1}</c:f><c:strCache><c:ptCount val="${N}"/>${labels.map((l,i)=>`<c:pt idx="${i}"><c:v>${esc(l)}</c:v></c:pt>`).join("")}</c:strCache></c:strRef>`;
+      const vRef=(c)=>`<c:numRef><c:f>'${sne}'!$${c}$2:$${c}$${N+1}</c:f><c:numCache><c:formatCode>General</c:formatCode><c:ptCount val="${N}"/>${(c==="B"?values:values2).map((v,i)=>`<c:pt idx="${i}"><c:v>${v}</c:v></c:pt>`).join("")}</c:numCache></c:numRef>`;
+      const hRef=(c,h)=>`<c:strRef><c:f>'${sne}'!$${c}$1</c:f><c:strCache><c:ptCount val="1"/><c:pt idx="0"><c:v>${esc(h)}</c:v></c:pt></c:strCache></c:strRef>`;
+      const ser1=`<c:ser><c:idx val="0"/><c:order val="0"/><c:tx>${hRef("B",serName)}</c:tx><c:cat>${lRef}</c:cat><c:val>${vRef("B")}</c:val></c:ser>`;
+      const ser2=values2?`<c:ser><c:idx val="1"/><c:order val="1"/><c:tx>${hRef("C",ser2Name||"Série 2")}</c:tx><c:cat>${lRef}</c:cat><c:val>${vRef("C")}</c:val></c:ser>`:"";
+      const isHoriz = type==="barHoriz";
+      const isPie   = type==="pie";
+      let body="";
+      if(isPie){
+        body=`<c:pieChart><c:varyColors val="1"/>${ser1}</c:pieChart>`;
+      } else {
+        const dir=isHoriz?"bar":"col";
+        body=`<c:barChart><c:barDir val="${dir}"/><c:grouping val="clustered"/>${ser1}${ser2}<c:axId val="1"/><c:axId val="2"/></c:barChart>
+<c:catAx><c:axId val="1"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="${isHoriz?"l":"b"}"/><c:crossAx val="2"/></c:catAx>
+<c:valAx><c:axId val="2"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="${isHoriz?"b":"l"}"/><c:crossAx val="1"/></c:valAx>`;
+      }
+      return chartWrap(title, body);
+    }
+
+    /* ── Gráfico OOXML multi-série (barras empilhadas %) ── */
+    function makeChartMulti(rowLabels, colLabels, matrix, title, sn){
+      const N=rowLabels.length, M=colLabels.length;
+      const sne=esc(sn);
+      const lRef=`<c:strRef><c:f>'${sne}'!$A$2:$A$${N+1}</c:f><c:strCache><c:ptCount val="${N}"/>${rowLabels.map((l,i)=>`<c:pt idx="${i}"><c:v>${esc(l)}</c:v></c:pt>`).join("")}</c:strCache></c:strRef>`;
+      const serXml=colLabels.map((cn,j)=>{
+        const C=col(j+2);
+        const vals=matrix.map(row=>row[j]);
+        return `<c:ser><c:idx val="${j}"/><c:order val="${j}"/>
+<c:tx><c:strRef><c:f>'${sne}'!$${C}$1</c:f><c:strCache><c:ptCount val="1"/><c:pt idx="0"><c:v>${esc(cn)}</c:v></c:pt></c:strCache></c:strRef></c:tx>
+<c:cat>${lRef}</c:cat>
+<c:val><c:numRef><c:f>'${sne}'!$${C}$2:$${C}$${N+1}</c:f><c:numCache><c:formatCode>General</c:formatCode><c:ptCount val="${N}"/>${vals.map((v,i)=>`<c:pt idx="${i}"><c:v>${v}</c:v></c:pt>`).join("")}</c:numCache></c:numRef></c:val>
 </c:ser>`;
       }).join("");
-      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart"
- xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
- xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-<c:chart>
-  <c:title><c:tx><c:rich><a:bodyPr/><a:lstStyle/><a:p><a:r><a:t>${esc(title)}</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title>
-  <c:plotArea>
-    <c:barChart><c:barDir val="bar"/><c:grouping val="percentStacked"/>
-    ${serXml}
-    <c:axId val="1"/><c:axId val="2"/></c:barChart>
-    <c:catAx><c:axId val="1"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="l"/><c:crossAx val="2"/></c:catAx>
-    <c:valAx><c:axId val="2"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="b"/><c:numFmt formatCode="0%" sourceLinked="0"/><c:crossAx val="1"/></c:valAx>
-  </c:plotArea>
-  <c:legend><c:legendPos val="b"/></c:legend>
-  <c:plotVisOnly val="1"/>
-</c:chart>
-</c:chartSpace>`;
-    }
-
-    /* Gerar XML do gráfico OOXML */
-    function chartXml(type, labels, values, title, serName, values2=null, ser2Name=null, sheetIdx=1, sheetRef=null){
-      /* type: "bar" | "barHoriz" | "pie" | "line" */
-      const N=labels.length;
-      /* referências às células da folha (sheet index = sheetIdx, 1-based) */
-      /* nome da folha escapado para XML — tem de corresponder ao nome real */
-      const sheetNameEsc = esc(sheetRef || `Sheet${sheetIdx}`);
-
-      function catRef(){ return `<c:numRef><c:f>'${sheetNameEsc}'!$B$2:$B$${N+1}</c:f><c:numCache><c:formatCode>General</c:formatCode><c:ptCount val="${N}"/>${values.map((v,i)=>`<c:pt idx="${i}"><c:v>${v}</c:v></c:pt>`).join("")}</c:numCache></c:numRef>`; }
-      function catRef2(){ return `<c:numRef><c:f>'${sheetNameEsc}'!$C$2:$C$${N+1}</c:f><c:numCache><c:formatCode>General</c:formatCode><c:ptCount val="${N}"/>${(values2||[]).map((v,i)=>`<c:pt idx="${i}"><c:v>${v}</c:v></c:pt>`).join("")}</c:numCache></c:numRef>`; }
-      function lblRef(){ return `<c:strRef><c:f>'${sheetNameEsc}'!$A$2:$A$${N+1}</c:f><c:strCache><c:ptCount val="${N}"/>${labels.map((l,i)=>`<c:pt idx="${i}"><c:v>${esc(l)}</c:v></c:pt>`).join("")}</c:strCache></c:strRef>`; }
-
-      /* Série 1 */
-      function ser1(idx=0){
-        return `<c:ser>
-  <c:idx val="${idx}"/><c:order val="${idx}"/>
-  <c:tx><c:strRef><c:f>'${sheetNameEsc}'!$B$1</c:f><c:strCache><c:ptCount val="1"/><c:pt idx="0"><c:v>${esc(serName)}</c:v></c:pt></c:strCache></c:strRef></c:tx>
-  <c:cat>${lblRef()}</c:cat>
-  <c:val>${catRef()}</c:val>
-</c:ser>`;
-      }
-
-      /* Série 2 */
-      function ser2(){
-        return `<c:ser>
-  <c:idx val="1"/><c:order val="1"/>
-  <c:tx><c:strRef><c:f>'${sheetNameEsc}'!$C$1</c:f><c:strCache><c:ptCount val="1"/><c:pt idx="0"><c:v>${esc(ser2Name||"Série 2")}</c:v></c:pt></c:strCache></c:strRef></c:tx>
-  <c:cat>${lblRef()}</c:cat>
-  <c:val>${catRef2()}</c:val>
-</c:ser>`;
-      }
-
-      /* Corpo do gráfico conforme tipo */
-      let chartBody="";
-      if(type==="bar"){
-        chartBody=`<c:barChart><c:barDir val="col"/><c:grouping val="clustered"/>${ser1()}${values2?ser2():""}<c:axId val="1"/><c:axId val="2"/></c:barChart>
-<c:catAx><c:axId val="1"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="b"/><c:crossAx val="2"/></c:catAx>
-<c:valAx><c:axId val="2"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="l"/><c:crossAx val="1"/></c:valAx>`;
-      } else if(type==="barHoriz"){
-        chartBody=`<c:barChart><c:barDir val="bar"/><c:grouping val="clustered"/>${ser1()}<c:axId val="1"/><c:axId val="2"/></c:barChart>
+      const body=`<c:barChart><c:barDir val="bar"/><c:grouping val="percentStacked"/>
+${serXml}
+<c:axId val="1"/><c:axId val="2"/></c:barChart>
 <c:catAx><c:axId val="1"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="l"/><c:crossAx val="2"/></c:catAx>
-<c:valAx><c:axId val="2"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="b"/><c:crossAx val="1"/></c:valAx>`;
-      } else if(type==="pie"){
-        chartBody=`<c:pieChart><c:varyColors val="1"/>${ser1()}</c:pieChart>`;
-      } else if(type==="line"){
-        chartBody=`<c:lineChart><c:grouping val="standard"/>${ser1()}<c:axId val="1"/><c:axId val="2"/></c:lineChart>
-<c:catAx><c:axId val="1"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="b"/><c:crossAx val="2"/></c:catAx>
-<c:valAx><c:axId val="2"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="l"/><c:crossAx val="1"/></c:valAx>`;
-      }
+<c:valAx><c:axId val="2"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="b"/><c:numFmt formatCode="0%" sourceLinked="0"/><c:crossAx val="1"/></c:valAx>`;
+      return chartWrap(title, body);
+    }
 
+    function chartWrap(title, body){
       return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart"
  xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
  xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-<c:autoTitleDeleted val="0"/>
 <c:chart>
-  <c:title><c:tx><c:rich><a:bodyPr/><a:lstStyle/><a:p><a:r><a:t>${esc(title)}</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title>
-  <c:plotArea>${chartBody}</c:plotArea>
-  <c:legend><c:legendPos val="b"/></c:legend>
-  <c:plotVisOnly val="1"/>
-</c:chart>
-</c:chartSpace>`;
+<c:title><c:tx><c:rich><a:bodyPr/><a:lstStyle/><a:p><a:r><a:t>${esc(title)}</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title>
+<c:autoTitleDeleted val="0"/>
+<c:plotArea>${body}</c:plotArea>
+<c:legend><c:legendPos val="b"/></c:legend>
+<c:plotVisOnly val="1"/>
+</c:chart></c:chartSpace>`;
     }
 
-    /* Gerar XML do drawing que posiciona o gráfico na folha */
-    function drawingXml(chartRelId){
+    /* drawing que posiciona o gráfico em D2:O22 */
+    function makeDrawing(chartRelId){
       return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing"
  xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
  xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
  xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart">
-<xdr:twoCellAnchor moveWithCells="0" sizeWithCells="0">
-  <xdr:from><xdr:col>3</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>1</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from>
-  <xdr:to><xdr:col>13</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>22</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to>
-  <xdr:graphicFrame macro=""><xdr:nvGraphicFramePr>
-    <xdr:cNvPr id="2" name="Chart 1"/>
-    <xdr:cNvGraphicFramePr/>
-  </xdr:nvGraphicFramePr>
-  <xdr:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></xdr:xfrm>
-  <a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart">
-    <c:chart r:id="${chartRelId}"/>
-  </a:graphicData></a:graphic>
-  </xdr:graphicFrame>
-  <xdr:clientData/>
-</xdr:twoCellAnchor>
-</xdr:wsDr>`;
+<xdr:twoCellAnchor>
+<xdr:from><xdr:col>3</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>1</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from>
+<xdr:to><xdr:col>14</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>24</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to>
+<xdr:graphicFrame macro=""><xdr:nvGraphicFramePr>
+<xdr:cNvPr id="2" name="Chart 1"/><xdr:cNvGraphicFramePr/></xdr:nvGraphicFramePr>
+<xdr:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></xdr:xfrm>
+<a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart">
+<c:chart r:id="${chartRelId}"/></a:graphicData></a:graphic>
+</xdr:graphicFrame><xdr:clientData/></xdr:twoCellAnchor></xdr:wsDr>`;
     }
 
-    /* Styles XML básico */
-    const stylesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-<fonts><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/><color rgb="FFFFFFFF"/></font></fonts>
-<fills><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>
-<fill><patternFill patternType="solid"><fgColor rgb="FF00843D"/></patternFill></fill></fills>
-<borders><border><left/><right/><top/><bottom/><diagonal/></border></borders>
-<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
-<cellXfs>
-  <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
-  <xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFill="1" applyFont="1"><alignment horizontal="center"/></xf>
-</cellXfs>
-</styleSheet>`;
+    /* ── Calcular todos os datasets com ordenação crescente ── */
+    const sortAsc = arr => [...arr].sort((a,b)=>a.n-b.n);
 
-    /* ════════════════════════════════════════════════
-       Construir o ZIP (.xlsx)
-    ════════════════════════════════════════════════ */
-    const zip = new JSZip();
+    const dsRed  = sortAsc(ORDEM_RED.map(k=>({k,n:data.filter(r=>r.estimativaReducao===k).length})));
+    const dsConf = sortAsc(ORDEM_CONF.map(k=>({k,n:data.filter(r=>r.grauConfianca===k).length})));
+    const dsTemp = sortAsc(ORDEM_TEMP.map(k=>({k,n:data.filter(r=>r.tempoPoupanca===k).length})));
+    const dsFat  = sortAsc(FATORES_L.map(k=>({k,n:data.filter(r=>(r.fatores||[]).includes(k)).length})));
+    const dsIvRaw= ivs.map(k=>({k,n:avg(data.filter(r=>r.intervencao===k))})).sort((a,b)=>a.n-b.n);
+    const dsConh = NIVEIS_CON.map((k,i)=>({k,lbl:`Nível ${i+1}`,tec:data.filter(r=>r.conhecimentoTecnico===k).length,fin:data.filter(r=>r.conhecimentoFinanceiro===k).length}));
+    const dsCConf= sortAsc(ORDEM_CONF.map(k=>({k,n:avg(data.filter(r=>r.grauConfianca===k))})));
+    const dsCConh= NIVEIS_CON.map((k,i)=>({k,lbl:`Nível ${i+1}`,n:avg(data.filter(r=>r.conhecimentoTecnico===k))})).sort((a,b)=>a.n-b.n);
 
-    /* Definição das folhas */
-    const sheets = [
-      { name:"Estimativa Redução",    type:"bar",      labels:DS.reducao.labels,    values:DS.reducao.values,    title:"Estimativa de Redução de Custos",          serName:"Nº Respostas" },
-      { name:"Média por Intervenção", type:"barHoriz", labels:DS.mediaPorIv.labels, values:DS.mediaPorIv.values, title:"Redução Média Estimada por Intervenção (%)", serName:"Média (%)" },
-      { name:"Grau de Confiança",     type:"pie",      labels:DS.confianca.labels,  values:DS.confianca.values,  title:"Grau de Confiança na Estimativa",           serName:"Nº Respostas" },
-      { name:"Horizonte Temporal",    type:"bar",      labels:DS.horizonte.labels,  values:DS.horizonte.values,  title:"Horizonte Temporal das Poupanças",          serName:"Nº Respostas" },
-      { name:"Factores Citados",      type:"barHoriz", labels:DS.fatores.labels,    values:DS.fatores.values,    title:"Factores Mais Citados",                     serName:"Nº Citações" },
-      { name:"Nível Conhecimento",    type:"bar",      labels:DS.conhecTec.labels,  values:DS.conhecTec.values,  title:"Nível de Conhecimento dos Especialistas",   serName:"Técnico", values2:DS.conhecTec.values2, ser2Name:"Financeiro" },
-      { name:"Redução × Confiança",   type:"bar",      labels:DS.cruzConf.labels,   values:DS.cruzConf.values,   title:"Redução Média × Grau de Confiança (%)",     serName:"Média (%)" },
-      { name:"Redução × Conhecimento",type:"bar",      labels:DS.cruzConh.labels,   values:DS.cruzConh.values,   title:"Redução Média × Conhecimento Técnico (%)",  serName:"Média (%)" },
-      { name:"Horizonte × Intervenção", type:"multi",   title:"Horizonte Temporal por Intervenção (%)",     multi:true, ivLabels:DS.cruzTempo.ivLabels, series:DS.cruzTempo.series },
-      { name:"Heatmap Redução",         type:"heatmap", title:"Intervenção × Faixa de Redução Estimada",    heatmap:true, ivLabels:DS.heatmap.ivLabels, bands:DS.heatmap.bands, matrix:DS.heatmap.matrix },
+    /* horizonte × intervenção */
+    const hMatrix = ivs.map(iv=> ORDEM_TEMP.map(t=>{ const tot=data.filter(r=>r.intervencao===iv).length; const c=data.filter(r=>r.intervencao===iv&&r.tempoPoupanca===t).length; return tot?+((c/tot)*100).toFixed(1):0; }));
+    /* heatmap: intervenção × faixa */
+    const hmMatrix = ivs.map(iv=> ORDEM_RED.map(f=>data.filter(r=>r.intervencao===iv&&r.estimativaReducao===f).length));
+
+    /* ── Definição das 10 folhas ── */
+    const sheets=[
+      { name:"Estimativa Redução",     chart:"bar",      labels:dsRed.map(x=>x.k),  vals:dsRed.map(x=>x.n),   hdrA:"Faixa",         hdrB:"Nº Respostas", title:"Estimativa de Redução de Custos" },
+      { name:"Média por Intervenção",  chart:"barHoriz", labels:dsIvRaw.map(x=>x.k),vals:dsIvRaw.map(x=>x.n), hdrA:"Intervenção",   hdrB:"Média (%)",    title:"Redução Média por Intervenção (%)" },
+      { name:"Grau de Confiança",      chart:"pie",      labels:dsConf.map(x=>x.k), vals:dsConf.map(x=>x.n),  hdrA:"Confiança",     hdrB:"Nº Respostas", title:"Grau de Confiança na Estimativa" },
+      { name:"Horizonte Temporal",     chart:"bar",      labels:dsTemp.map(x=>x.k), vals:dsTemp.map(x=>x.n),  hdrA:"Horizonte",     hdrB:"Nº Respostas", title:"Horizonte Temporal das Poupanças" },
+      { name:"Factores Citados",       chart:"barHoriz", labels:dsFat.map(x=>x.k),  vals:dsFat.map(x=>x.n),   hdrA:"Factor",        hdrB:"Nº Citações",  title:"Factores Mais Citados" },
+      { name:"Nível Conhecimento",     chart:"bar",      labels:dsConh.map(x=>x.lbl),vals:dsConh.map(x=>x.tec),hdrA:"Nível",        hdrB:"Técnico",      title:"Nível de Conhecimento", vals2:dsConh.map(x=>x.fin), hdr2:"Financeiro" },
+      { name:"Redução × Confiança",    chart:"bar",      labels:dsCConf.map(x=>x.k),vals:dsCConf.map(x=>x.n), hdrA:"Confiança",     hdrB:"Média (%)",    title:"Redução Média × Grau de Confiança (%)" },
+      { name:"Redução × Conhecimento", chart:"bar",      labels:dsCConh.map(x=>x.lbl),vals:dsCConh.map(x=>x.n),hdrA:"Nível",       hdrB:"Média (%)",    title:"Redução Média × Conhecimento Técnico (%)" },
+      { name:"Horizonte × Intervenção",chart:"multi",    rowLabels:ivs, colLabels:ORDEM_TEMP, matrix:hMatrix, title:"Horizonte Temporal por Intervenção (%)" },
+      { name:"Heatmap Redução",        chart:"multi",    rowLabels:ivs, colLabels:ORDEM_RED,  matrix:hmMatrix,title:"Intervenção × Faixa de Redução Estimada" },
     ];
 
+    /* ── Construir ZIP ── */
+    const zip = new JSZip();
+
     /* [Content_Types].xml */
-    const contentTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    zip.file("[Content_Types].xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
 <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
 <Default Extension="xml"  ContentType="application/xml"/>
@@ -1742,97 +1623,91 @@ el("exportChartsBtn").addEventListener("click", async ()=>{
 ${sheets.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
 <Override PartName="/xl/charts/chart${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>
 <Override PartName="/xl/drawings/drawing${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>`).join("\n")}
-</Types>`;
+</Types>`);
 
     /* _rels/.rels */
-    const rootRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    zip.file("_rels/.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
 <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
-</Relationships>`;
+</Relationships>`);
 
     /* xl/workbook.xml */
-    const workbookXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    zip.file("xl/workbook.xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
  xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
 <sheets>${sheets.map((s,i)=>`<sheet name="${esc(s.name)}" sheetId="${i+1}" r:id="rId${i+2}"/>`).join("")}</sheets>
-</workbook>`;
+</workbook>`);
 
     /* xl/_rels/workbook.xml.rels */
-    const workbookRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    zip.file("xl/_rels/workbook.xml.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
 <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
 ${sheets.map((_,i)=>`<Relationship Id="rId${i+2}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join("\n")}
-</Relationships>`;
+</Relationships>`);
 
-    zip.file("[Content_Types].xml", contentTypes);
-    zip.file("_rels/.rels", rootRels);
-    zip.file("xl/workbook.xml", workbookXml);
-    zip.file("xl/_rels/workbook.xml.rels", workbookRels);
-    zip.file("xl/styles.xml", stylesXml);
+    /* xl/styles.xml */
+    zip.file("xl/styles.xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<fonts><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>
+<fills><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>
+<borders><border><left/><right/><top/><bottom/><diagonal/></border></borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs>
+<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+</cellXfs>
+</styleSheet>`);
 
-    /* Folhas, gráficos e drawings */
+    /* Folhas + gráficos + drawings */
     sheets.forEach((s,i)=>{
-      const si = i+1;
+      const si=i+1;
 
-      /* Folha de dados — tipo diferente para multi e heatmap */
-      if(s.multi){
-        zip.file(`xl/worksheets/sheet${si}.xml`,
-          sheetXmlMulti(s.ivLabels, s.series.map(x=>x.name), s.series.map(x=>x.values)));
-      } else if(s.heatmap){
-        zip.file(`xl/worksheets/sheet${si}.xml`,
-          sheetXmlMulti(s.ivLabels, s.bands, s.matrix));
+      /* folha de dados */
+      if(s.chart==="multi"){
+        zip.file(`xl/worksheets/sheet${si}.xml`, makeSheetMulti(s.rowLabels, s.colLabels, s.matrix));
       } else {
-        zip.file(`xl/worksheets/sheet${si}.xml`,
-          sheetXml(s.labels, s.values, s.serName, s.values2||null, s.ser2Name||null));
+        zip.file(`xl/worksheets/sheet${si}.xml`, makeSheet(s.labels, s.vals, s.hdrA, s.hdrB, s.vals2||null, s.hdr2||null));
       }
 
-      /* Rel da folha → drawing */
-      zip.file(`xl/worksheets/_rels/sheet${si}.xml.rels`,
-        `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+      /* rel da folha → drawing */
+      zip.file(`xl/worksheets/_rels/sheet${si}.xml.rels`,`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
 <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing${si}.xml"/>
 </Relationships>`);
 
-      /* Gráfico */
-      if(s.multi){
-        zip.file(`xl/charts/chart${si}.xml`,
-          chartXmlMulti(s.ivLabels, s.series, s.title, s.name));
-      } else if(s.heatmap){
-        /* heatmap: barras empilhadas por faixa */
-        const heatSeries = s.bands.map((b,bi)=>({ name:b, values:s.ivLabels.map((_,ri)=>s.matrix[ri][bi]) }));
-        zip.file(`xl/charts/chart${si}.xml`,
-          chartXmlMulti(s.ivLabels, heatSeries, s.title, s.name));
+      /* gráfico */
+      if(s.chart==="multi"){
+        zip.file(`xl/charts/chart${si}.xml`, makeChartMulti(s.rowLabels, s.colLabels, s.matrix, s.title, s.name));
       } else {
-        zip.file(`xl/charts/chart${si}.xml`,
-          chartXml(s.type, s.labels, s.values, s.title, s.serName, s.values2||null, s.ser2Name||null, si, s.name));
+        zip.file(`xl/charts/chart${si}.xml`, makeChart(s.chart, s.labels, s.vals, s.title, s.hdrB, s.name, s.vals2||null, s.hdr2||null));
       }
 
-      /* Drawing */
-      zip.file(`xl/drawings/drawing${si}.xml`, drawingXml("rId1"));
+      /* drawing */
+      zip.file(`xl/drawings/drawing${si}.xml`, makeDrawing("rId1"));
 
-      /* Rel do drawing → gráfico */
-      zip.file(`xl/drawings/_rels/drawing${si}.xml.rels`,
-        `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+      /* rel drawing → gráfico */
+      zip.file(`xl/drawings/_rels/drawing${si}.xml.rels`,`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
 <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="../charts/chart${si}.xml"/>
 </Relationships>`);
     });
 
     /* Gerar e descarregar */
-    const buf  = await zip.generateAsync({ type:"arraybuffer", mimeType:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-    const blob = new Blob([buf],{ type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const buf  = await zip.generateAsync({type:"arraybuffer"});
+    const blob = new Blob([buf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
     const link = document.createElement("a");
     link.href  = URL.createObjectURL(blob);
     link.download = `Inquerito_TaskForce_Graficos_${dataStr}.xlsx`;
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
     toast(`Excel com ${sheets.length} gráficos editáveis exportado.`,"ok");
 
   }catch(err){
-    console.error("Erro ao exportar gráficos:",err);
-    toast("Erro: "+(err.message||err),"err");
+    console.error("Erro export gráficos:",err);
+    toast("Erro: "+(err.message||String(err)),"err");
   }
 });
-
 
 </script>
 </body>
