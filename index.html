@@ -272,7 +272,7 @@ footer .f-note{font-size:12px;color:rgba(255,255,255,.62);max-width:300px;line-h
 @media(max-width:760px){.insight-list{grid-template-columns:1fr}}
 
 /* === Selecção de programa (step-0) === */
-.prog-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:4px}
+.prog-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:4px}
 .prog-card{position:relative;border:2px solid var(--line);border-radius:16px;padding:22px 18px 18px;cursor:pointer;transition:.18s;background:var(--soft);text-align:center;user-select:none}
 .prog-card:hover{border-color:#b0c4ba;background:#fff;transform:translateY(-2px);box-shadow:var(--shadow)}
 .prog-card input{position:absolute;opacity:0;pointer-events:none}
@@ -286,7 +286,9 @@ footer .f-note{font-size:12px;color:rgba(255,255,255,.62);max-width:300px;line-h
 .prog-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:4px 11px;border-radius:20px;margin-bottom:10px}
 .prog-badge.mal{background:var(--verde-l);color:var(--verde-d)}
 .prog-badge.tb{background:#edf2fb;color:#1a3a8f}
-@media(max-width:700px){.prog-grid{grid-template-columns:1fr 1fr}}@media(max-width:480px){.prog-grid{grid-template-columns:1fr}}
+.prog-badge.hiv{background:#fce8f0;color:#a02060}
+.prog-badge.lab{background:#eef3ff;color:#2a52be}
+@media(max-width:900px){.prog-grid{grid-template-columns:1fr 1fr}}@media(max-width:480px){.prog-grid{grid-template-columns:1fr}}
 
 </style>
 </head>
@@ -377,6 +379,30 @@ footer .f-note{font-size:12px;color:rgba(255,255,255,.62);max-width:300px;line-h
                 <div class="pc-ico" style="background:#fce8f0;padding:6px"><svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%"><!-- Vírus HIV: esfera central com spikes glicoproteicos --><!-- Envelope viral --><circle cx="32" cy="32" r="16" fill="#e8a0b4" fill-opacity=".35" stroke="#a02060" stroke-width="2.2"/><!-- Núcleo cónico (capsídeo) --><ellipse cx="32" cy="34" rx="7" ry="9" fill="#c04070" fill-opacity=".55" stroke="#801040" stroke-width="1.5"/><!-- ARN --><path d="M29 28 Q32 32 29 38" stroke="#801040" stroke-width="1.2" stroke-linecap="round" fill="none"/><path d="M35 28 Q32 32 35 38" stroke="#801040" stroke-width="1.2" stroke-linecap="round" fill="none"/><!-- Spikes gp120/gp41 (8 spikes ao redor) --><g stroke="#a02060" stroke-width="1.8" stroke-linecap="round"><!-- topo --><line x1="32" y1="16" x2="32" y2="11"/><circle cx="32" cy="10" r="2.2" fill="#e8a0b4" stroke="#a02060" stroke-width="1.5"/><!-- direita topo --><line x1="42" y1="20" x2="46" y2="16"/><circle cx="47" cy="15" r="2.2" fill="#e8a0b4" stroke="#a02060" stroke-width="1.5"/><!-- direita --><line x1="48" y1="32" x2="53" y2="32"/><circle cx="54.5" cy="32" r="2.2" fill="#e8a0b4" stroke="#a02060" stroke-width="1.5"/><!-- direita baixo --><line x1="42" y1="44" x2="46" y2="48"/><circle cx="47" cy="49" r="2.2" fill="#e8a0b4" stroke="#a02060" stroke-width="1.5"/><!-- baixo --><line x1="32" y1="48" x2="32" y2="53"/><circle cx="32" cy="54.5" r="2.2" fill="#e8a0b4" stroke="#a02060" stroke-width="1.5"/><!-- esquerda baixo --><line x1="22" y1="44" x2="18" y2="48"/><circle cx="17" cy="49" r="2.2" fill="#e8a0b4" stroke="#a02060" stroke-width="1.5"/><!-- esquerda --><line x1="16" y1="32" x2="11" y2="32"/><circle cx="9.5" cy="32" r="2.2" fill="#e8a0b4" stroke="#a02060" stroke-width="1.5"/><!-- esquerda topo --><line x1="22" y1="20" x2="18" y2="16"/><circle cx="17" cy="15" r="2.2" fill="#e8a0b4" stroke="#a02060" stroke-width="1.5"/></g></svg></div>
                 <div class="pc-nome">Programa de HIV</div>
                 <div class="pc-sub">5 intervenções · ATS, Consumíveis, Cuidados e Tratamento, Monitoria, Prevenção</div>
+                <span class="pc-check"><i class="ph-fill ph-check"></i></span>
+              </label>
+              <label class="prog-card">
+                <input type="radio" name="programa" value="laboratorio">
+                <div class="pc-ico" style="background:#eef3ff;padding:6px">
+                  <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+                    <!-- Frasco Erlenmeyer com líquido -->
+                    <path d="M24 10h16v18l10 22H14L24 28V10z" fill="#d0deff" stroke="#2a52be" stroke-width="2.5" stroke-linejoin="round"/>
+                    <path d="M18 42l4-8h20l4 8H18z" fill="#6b8ee8" opacity=".6"/>
+                    <!-- líquido -->
+                    <ellipse cx="32" cy="46" rx="10" ry="3" fill="#2a52be" opacity=".3"/>
+                    <!-- marcações -->
+                    <line x1="24" y1="20" x2="28" y2="20" stroke="#2a52be" stroke-width="1.5" stroke-linecap="round"/>
+                    <line x1="24" y1="25" x2="27" y2="25" stroke="#2a52be" stroke-width="1.5" stroke-linecap="round"/>
+                    <!-- bolhas -->
+                    <circle cx="29" cy="44" r="1.5" fill="#fff" opacity=".7"/>
+                    <circle cx="34" cy="46" r="1" fill="#fff" opacity=".7"/>
+                    <circle cx="31" cy="48" r="1.2" fill="#fff" opacity=".5"/>
+                    <!-- tampa -->
+                    <rect x="23" y="8" width="18" height="4" rx="2" fill="#2a52be" opacity=".4"/>
+                  </svg>
+                </div>
+                <div class="pc-nome">Rede de Laboratórios</div>
+                <div class="pc-sub">1 componente · Optimização de custos</div>
                 <span class="pc-check"><i class="ph-fill ph-check"></i></span>
               </label>
             </div>
@@ -547,6 +573,7 @@ footer .f-note{font-size:12px;color:rgba(255,255,255,.62);max-width:300px;line-h
             <option value="Programa de Malária">Malária</option>
             <option value="Programa de Tuberculose">Tuberculose</option>
             <option value="Programa de HIV">HIV</option>
+            <option value="Rede de Laboratórios">Laboratórios</option>
           </select>
           <select id="filtroIntervencao" style="min-width:220px"><option value="">Todas as intervenções</option></select>
         </div>
@@ -861,6 +888,17 @@ const PROGRAMAS = {
       }
     ]
   }
+,
+  laboratorio: {
+    label: "Rede de Laboratórios",
+    badgeClass: "lab",
+    badgeIcon: "ph-fill ph-flask",
+    colecao: "inquerito_laboratorio",
+    intervencoes: [
+      { id:"lab_componente", nome:"Componente de Laboratório",
+        desc:"Percepção do impacto das propostas de optimização na redução de custos das componentes da rede de laboratórios de saúde humana." }
+    ]
+  }
 };
 
 let programaActivo = null;
@@ -1103,8 +1141,8 @@ function startAllListeners(){
   /* actualizar APP global se ainda não estava definido */
   if(!APP && APP_REF) APP = APP_REF;
 
-  const COLS = ["inquerito_pm_malaria", "inquerito_tb", "inquerito_hiv"];
-  let snapshots = { inquerito_pm_malaria: [], inquerito_tb: [], inquerito_hiv: [] };
+  const COLS = ["inquerito_pm_malaria", "inquerito_tb", "inquerito_hiv", "inquerito_laboratorio"];
+  let snapshots = { inquerito_pm_malaria: [], inquerito_tb: [], inquerito_hiv: [], inquerito_laboratorio: [] };
 
   COLS.forEach(col => {
     const q = APP_REF.query(APP_REF.collection(APP_REF.db, col), APP_REF.orderBy("timestamp","desc"));
@@ -1114,7 +1152,8 @@ function startAllListeners(){
       RESPOSTAS = [
         ...snapshots["inquerito_pm_malaria"],
         ...snapshots["inquerito_tb"],
-        ...snapshots["inquerito_hiv"]
+        ...snapshots["inquerito_hiv"],
+        ...snapshots["inquerito_laboratorio"]
       ].sort((a,b) => {
         const ta = a.timestamp?.toMillis ? a.timestamp.toMillis() : 0;
         const tb = b.timestamp?.toMillis ? b.timestamp.toMillis() : 0;
