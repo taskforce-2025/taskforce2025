@@ -95,6 +95,9 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
 .proposta-card .pc-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--verde-d);background:#fff;border:1px solid var(--verde);padding:4px 11px;border-radius:20px;margin-bottom:11px}
 .proposta-card h3{font-size:15.5px;font-weight:800;color:var(--verde-dd);margin-bottom:8px}
 .proposta-card .desc{font-size:13.5px;color:#37433a;line-height:1.6}
+.proposta-card .desc ul{margin:8px 0 0 0;padding:0;list-style:none}
+.proposta-card .desc ul li{padding:4px 0 4px 20px;position:relative}
+.proposta-card .desc ul li::before{content:"•";position:absolute;left:4px;color:var(--verde-d);font-weight:900}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
 .opts{display:grid;gap:9px}
@@ -896,11 +899,11 @@ const PROGRAMAS = {
     colecao: "inquerito_laboratorio",
     intervencoes: [
       { id:"lab_organizacao", nome:"Organização e Coordenação",
-        desc:"A organização e coordenação da rede é um conjunto de estruturas, processos e mecanismos que garantem que os serviços laboratoriais funcionem de forma integrada, eficiente e acessível em todos os níveis de atenção. A boa organização e coordenação da rede é fundamental para acesso equitativo, qualidade dos resultados e uso eficiente de recursos no SNS. A rede de laboratórios do SNS está organizada em níveis hierárquicos, nomeadamente, Primário (local), Secundário (distrital/provincial) e Terciário (Central/Nacional). As estratégias de gestão e coordenação da rede são discutidas a nível central e replicadas em cascata para nível secundário e primário." },
+        desc:"Para organização e coordenação da rede foram propostas duas acções:\n• Mapear documentos orientadores da área de laboratórios, incluindo o seu nível de implementação, e desenvolver planos operacionais que incluam estratégia de divulgação, monitoria e orçamento necessário.\n• Realizar análise comparativa de 3 opções de modelos de rede (centralizado e autónomo, descentralizado e fragmentado, e modelo misto) de modo a propor o modelo que melhor se adequa ao contexto actual e às mudanças previstas pela nova lei do SNS." },
       { id:"lab_diagnostico", nome:"Diagnóstico Clínico",
-        desc:"O diagnóstico clínico consiste na análise integrada da informação do paciente com o objectivo de formulação de uma hipótese de diagnóstico e sua testagem de modo a gerar informação relevante para a tomada de decisão clínica. Este diagnóstico inclui a história clínica, exame físico e exames complementares (Laboratoriais, imagem e outros). As duas primeiras fases (história clínica e exame físico) são fundamentais para decidir sobre a necessidade de exames laboratoriais, bem como sobre que tipo de exames a serem realizados." },
+        desc:"Para o diagnóstico clínico as propostas de optimização são:\n• Elaborar, validar, implementar e monitorar protocolos clínicos harmonizados para todos os níveis de atenção, alinhados com a Lista Nacional de Diagnóstico Essencial e Pacote Essencial de Cuidados de Saúde.\n• Implementar estratégia de alocação criteriosa e centralizada de capacidade de testagem tendo em conta a demanda e rotas de referenciamento de amostras.\n• Implementar plataformas simplificadas de diagnóstico, incluindo sistemas de saúde digital.\n• Implementar um sistema digital que permite rastreabilidade de pedidos e uso de exames laboratoriais e integração com sistemas logísticos.\n• Implementar estratégias de supervisão integrada e adoptar abordagens virtuais sempre que aplicável." },
       { id:"lab_logistica", nome:"Logística",
-        desc:"A logística é um conjunto de processos que garantem a circulação eficiente de amostras, reagentes, equipamentos e resultados na rede de diagnóstico. Em Moçambique, a cadeia de abastecimento de produtos de saúde está estruturada em níveis administrativos, desde o nível central (CMAM e programas verticais) até ao nível Provincial e Distrital. Os desafios desta área incluem a dependência de importações, financiamento inadequado, processos de aquisição fragmentados, preços inconsistentes, previsão baseada em planos e não em consumo real, logística complexa em zonas rurais e sistemas de informação paralelos (LMIS, LIS, registos manuais)." }
+        desc:"Para a componente de logística as propostas de optimização são:\n• Integração da planificação dos produtos de laboratório no âmbito do comando único, incluindo provisão baseada em dados reais de consumo, número de testes realizados, capacidade instalada e tendências epidemiológicas.\n• Codificação dos produtos de laboratório e integração da planificação de insumos laboratoriais no CMAM.\n• Revisão nacional e padronização de equipamentos e do menu de testes, com priorização das aquisições com base no VEN (Vital, Essential and Non-essential) e nível de atenção.\n• Criação de catálogo nacional de preços e negociação centralizada de compras agregadas e contratos de longo prazo com fornecedores estratégicos.\n• Revisão da política nacional para incluir mecanismos de aquisição de emergência e criação de fundo específico para surtos e resposta rápida." }
     ]
   }
 };
@@ -985,12 +988,12 @@ sel.addEventListener("change",()=>{
       subField.style.display="block";
       /* Mostrar descrição da intervenção-mãe como contexto */
       document.getElementById("propostaTitulo").textContent=iv.nome;
-      document.getElementById("propostaDesc").textContent=iv.desc;
+      renderDesc(document.getElementById("propostaDesc"), iv.desc);
       card.classList.add("show");
     } else {
       /* Intervenção simples (Malária / TB) */
       document.getElementById("propostaTitulo").textContent=iv.nome;
-      document.getElementById("propostaDesc").textContent=iv.desc;
+      renderDesc(document.getElementById("propostaDesc"), iv.desc);
       card.classList.add("show");
       document.getElementById("questionsBlock").style.display="block";
     }
@@ -1004,7 +1007,7 @@ subSel.addEventListener("change",()=>{
   const sub=iv.subIntervencoes.find(s=>s.id===subSel.value);
   if(sub){
     document.getElementById("propostaTitulo").textContent=sub.nome;
-    document.getElementById("propostaDesc").textContent=sub.desc;
+    renderDesc(document.getElementById("propostaDesc"), sub.desc);
     card.classList.add("show");
     document.getElementById("questionsBlock").style.display="block";
   }
@@ -1017,6 +1020,19 @@ function syncOutro(group){
 ["conhecimentoTecnico","conhecimentoFinanceiro","fatores"].forEach(g=>{
   document.querySelectorAll(`input[name="${g}"]`).forEach(i=>i.addEventListener("change",()=>syncOutro(g)));
 });
+function renderDesc(el, text){
+  if(!text){ el.innerHTML=""; return; }
+  const parts = text.split("\n");
+  const intro = parts[0];
+  const bullets = parts.slice(1).filter(s=>s.trim().startsWith("•"));
+  if(bullets.length){
+    const items = bullets.map(b=>`<li>${b.replace(/^•\s*/,"")}</li>`).join("");
+    el.innerHTML = `<span>${intro}</span><ul>${items}</ul>`;
+  } else {
+    el.textContent = text;
+  }
+}
+
 function radioVal(name){
   const c=document.querySelector(`input[name="${name}"]:checked`);
   if(!c) return "";
